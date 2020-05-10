@@ -1,6 +1,7 @@
 # molen-resource_sensor_leds
 
 English version<br>
+Fot the board with the blue and yellow LEDs<br>
 
 Pulses are collected through IR-sensors to determine how fast the blades of a mill are turning.<br>
 De code count the pulses and calculates the number of blades per minute.

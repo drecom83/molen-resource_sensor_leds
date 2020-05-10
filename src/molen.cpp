@@ -32,10 +32,10 @@ const uint8 MAX_RATIO_ARGUMENT = 128; // Maximum length of ratioArgument
 // On a ESP8266-12 GPIO0 is used, physical name is pin D0
 // On a ESP8266-12 GPIO5 is used, physical name is pin D5
 
-const uint8_t IR_RECEIVE_1 = D5;    // Digital pin to read an incoming signal
-const uint8_t IR_RECEIVE_2 = D6;    // Digital pin to read an incoming signal
-const uint8_t OUTPUT_LED = D0;
-const uint8_t IR_SEND = D1;         // switch for IR send LED. 0 = off, 1 = on
+const uint8_t IR_RECEIVE_1 = D0;    // Digital pin to read an incoming signal
+const uint8_t IR_RECEIVE_2 = D5;    // Digital pin to read an incoming signal
+const uint8_t OUTPUT_LED = D4;
+const uint8_t IR_SEND = D6;         // switch for IR send LED. 0 = off, 1 = on
 
 //const uint8_t DIM = 30;             // maximum acceleration and deceleration of viewPulsesPerMinute
 //const uint32_t WAIT_PERIOD = 1000;  // wait period in the loop for energy saving, in milliseconds
@@ -454,18 +454,18 @@ void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
   uint8_t result = 0;
   if ( (digitalRead(IR_RECEIVE_1) == true) && 
       (digitalRead(IR_RECEIVE_2) == true) &&
-      (permissionToDetect == false) )
+      (permissionToDetect == true) )
   {
-    permissionToDetect = true;
+    result = 1;
+    permissionToDetect = false;
+    flashPin(OUTPUT_LED, 1);
   }
 
   if ( (digitalRead(IR_RECEIVE_1) == false) && 
       (digitalRead(IR_RECEIVE_2) == false) && 
-      (permissionToDetect == true) )
+      (permissionToDetect == false) )
   {
-    result = 1;
-    permissionToDetect = false;  // start over again
-    flashPin(OUTPUT_LED, 1);
+    permissionToDetect = true;  // start over again
 
     //debugMessage("detectpulse aangeroepen");
     //uint8_t result = getEchoResult();

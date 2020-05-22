@@ -34,8 +34,14 @@ const uint8 MAX_RATIO_ARGUMENT = 128; // Maximum length of ratioArgument
 
 const uint8_t IR_RECEIVE_1 = D0;    // Digital pin to read an incoming signal
 const uint8_t IR_RECEIVE_2 = D5;    // Digital pin to read an incoming signal
-const uint8_t OUTPUT_LED = D4;
+//const uint8_t OUTPUT_LED = D4;
 const uint8_t IR_SEND = D6;         // switch for IR send LED. 0 = off, 1 = on
+
+const uint8_t BUTTON = D7;          // Digital pin to read button-push
+const uint8_t BLUE_LED = D4;
+const uint8_t YELLOW_1_LED = D3;
+const uint8_t YELLOW_2_LED = D2;
+const uint8_t YELLOW_3_LED= D1;
 
 //const uint8_t DIM = 30;             // maximum acceleration and deceleration of viewPulsesPerMinute
 //const uint32_t WAIT_PERIOD = 1000;  // wait period in the loop for energy saving, in milliseconds
@@ -59,6 +65,9 @@ Settings* pSettings = &settings;
 WiFiSettings wifiSettings = WiFiSettings(pSettings);
 WiFiSettings* pWifiSettings = &wifiSettings;
 
+// detectButtonFlag lets the program know that a network-toggle is going on
+bool detectButtonFlag = false;
+
 //char ratioTestArgument[] = "4-72.99.33-80.24";
 
 // Forward declaration
@@ -78,7 +87,11 @@ void ICACHE_RAM_ATTR detectPulse();
 void echoInterruptOn();
 void echoInterruptOff();
 
+void ICACHE_RAM_ATTR detectButton();
+void buttonInterruptOn();
+void buttonInterruptOff();
 
+void toggleWiFi();
 /*
 2^8 = 256
 2^16 = 65536
@@ -124,6 +137,10 @@ void initSettings() {
 
 void setupWiFi(){
   echoInterruptOff();  // to prevent error with Delay
+  digitalWrite(YELLOW_1_LED, LOW);
+  digitalWrite(YELLOW_2_LED, HIGH);
+  digitalWrite(YELLOW_3_LED, LOW);
+
   WiFi.mode(WIFI_AP);
 
   pSettings->allowSendingData(false);  // because there is no internetConnection
@@ -143,7 +160,7 @@ void setupWiFi(){
     myssid = "ESP-" + WiFi.macAddress();
   }
   String mypass = pWifiSettings->readAccessPointPassword();
-  /*
+  ///*
   Serial.println("myssid in class");
   Serial.println(pWifiSettings->getAccessPointSSID());
   Serial.println("password in class");
@@ -157,7 +174,7 @@ void setupWiFi(){
   Serial.println(myssid[2]);
   Serial.println("password in EEPROM");
   Serial.println(mypass);
-  */
+  //*/
 
   //WiFi.begin();  // alleen voor het maken van een connectie in station mode
   //WiFi.mode(WIFI_AP_STA);
@@ -171,6 +188,7 @@ void setupWiFi(){
 
   Serial.print("Setting soft-AP ... ");
   //Serial.println(WiFi.softAP(ssid,pass,3,0) ? "Ready" : "Failed!");
+  // mypass needs minimum of 8 characters
   Serial.println(WiFi.softAP(myssid,mypass,3,0) ? "Ready" : "Failed!");
   Serial.print("Setting soft-AP configuration ... ");
   Serial.println(WiFi.softAPConfig(local_IP, gateway, subnet) ? "Ready" : "Failed!");
@@ -191,6 +209,9 @@ void setupWiFi(){
   Serial.println(WiFi.softAPIP());
   Serial.println(WiFi.softAPmacAddress());
 
+  digitalWrite(YELLOW_1_LED, HIGH);
+  digitalWrite(YELLOW_2_LED, LOW);
+ 
   echoInterruptOn();  // to prevent error with Delay
 
 }
@@ -210,6 +231,10 @@ void setupWiFiManager () {
   bool networkConnected = false;
   echoInterruptOff();  // to prevent error with Delay
   //WiFi.mode(WIFI_STA);
+  digitalWrite(YELLOW_1_LED, LOW);
+  digitalWrite(YELLOW_2_LED, HIGH);
+  digitalWrite(YELLOW_3_LED, LOW);
+
 
   //IPAddress local_IP(10,0,0,55);
   //IPAddress gateway(10,0,0,1);
@@ -253,6 +278,8 @@ void setupWiFiManager () {
       //pSettings->allowSendingData(true);
 
       //dnsServer.reset(new DNSServer());
+        digitalWrite(YELLOW_2_LED, LOW);
+        digitalWrite(YELLOW_3_LED, HIGH);
       }
     }
     if (networkConnected == false) {
@@ -298,10 +325,12 @@ void resetWiFiManagerToFactoryDefaults () {
 
 void switchToAccessPoint() {
   echoInterruptOff();  // to prevent error with Delay
+
   showSettings();
   server.close();
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
+
   setupWiFi();
   delay(pSettings->WAIT_PERIOD);
 
@@ -311,11 +340,11 @@ void switchToAccessPoint() {
 initServer();
 // start domain name server check
 //void checkmDNS() {
-  //mdns.close();
- // while (mdns.begin("molen", WiFi.softAPIP())) {
- //   Serial.println("MDNS responder started");
- //   mdns.addService("http", "tcp", 80);
-  //}
+  mdns.close();
+  while (mdns.begin("molen", WiFi.softAPIP())) {
+    Serial.println("MDNS responder started");
+    mdns.addService("http", "tcp", 80);
+  }
 //}
 // end domain name server check
   echoInterruptOn();  // to prevent error with Delay
@@ -324,13 +353,15 @@ initServer();
 
 void switchToNetwork() {
   echoInterruptOff();  // to prevent error with Delay
+
   showSettings();
   server.close();
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
-  setupWiFiManager();
 
+  setupWiFiManager();
   delay(pSettings->WAIT_PERIOD);
+
   setupArduinoOTA();
   delay(pSettings->WAIT_PERIOD);
   //checkmDNS();
@@ -441,6 +472,28 @@ void delayInMillis(uint8_t ms)
   }
 }
 
+void ICACHE_RAM_ATTR detectButton() {  // ICACHE_RAM_ATTR is voor interrupts
+  // this function is called after a change of pressed button  
+  buttonInterruptOff();  // to prevent exception
+
+  delayInMillis(10);      // prevent bounce
+  
+  if (digitalRead(BUTTON) == HIGH)
+  {
+    detectButtonFlag = true;
+    // only toggle between AP and STA by using the button, not saving in EEPROM
+  }
+  buttonInterruptOn();  // to prevent exception
+}
+
+void buttonInterruptOn() {
+  attachInterrupt(digitalPinToInterrupt(BUTTON), detectButton, CHANGE);
+}
+
+void buttonInterruptOff() {
+  detachInterrupt(BUTTON);
+}
+
 void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
   // this function is called after a change of every sensor-value
   // wait until both sensors are true, then permissionToDetect = true
@@ -458,7 +511,7 @@ void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
   {
     result = 1;
     permissionToDetect = false;
-    flashPin(OUTPUT_LED, 1);
+    flashPin(BLUE_LED, 1);
   }
 
   if ( (digitalRead(IR_RECEIVE_1) == false) && 
@@ -504,7 +557,7 @@ void handlePage() {
   homePage(server, pSettings);
 
   //writeResult(client, result);
-  flashPin(OUTPUT_LED, 100);
+  flashPin(BLUE_LED, 100);
   debugMessage("Someone has entered the 'Count' page");
 
 }
@@ -548,6 +601,21 @@ void handleArguments() {
 }
 
 void mydebug() {
+  String result = "";
+  String myIP = "";
+  result += "IP address: ";
+  if (WiFi.getMode() == WIFI_AP)
+  {
+    myIP = WiFi.softAPIP().toString();
+  }
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    myIP = WiFi.localIP().toString();
+  }
+
+  result += myIP;
+  result += "\r\n";
+
   Serial.println("wifi gegevens");
   Serial.print("readAccessPointSSID: ");
   Serial.println(pWifiSettings->readAccessPointSSID());
@@ -557,6 +625,11 @@ void mydebug() {
   Serial.println(pWifiSettings->readNetworkSSID());
   Serial.print("readNetworkPassword: ");
   Serial.println(pWifiSettings->readNetworkPassword());
+
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
 }
 
 void showSettings() {
@@ -783,7 +856,22 @@ void handleNotFound(){
 
 }
 
+void toggleWiFi()
+{
+  // only toggle by using the button, not saving in EEPROM
+  pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
+  if (pSettings->beginAsAccessPoint() == true)
+  {
+    //switchToAccessPoint();
+    setupWiFi();        // local network as access point
+  }
+  else
+  {
+    //switchToNetwork();
+    setupWiFiManager();   // part of local network as station
+  }
 
+}
 
 void initHardware()
 {
@@ -792,7 +880,12 @@ void initHardware()
   pinMode(IR_RECEIVE_1, INPUT);  // default down
   pinMode(IR_RECEIVE_2, INPUT);  // default down
   //pinMode(VALID_DISTANCE, OUTPUT);
-  pinMode(OUTPUT_LED, OUTPUT);
+  //pinMode(OUTPUT_LED, OUTPUT);
+
+  pinMode(BLUE_LED, OUTPUT);
+  pinMode(YELLOW_1_LED, OUTPUT);
+  pinMode(YELLOW_2_LED, OUTPUT);
+  pinMode(YELLOW_3_LED, OUTPUT);
 }
 
 void initServer()
@@ -851,7 +944,11 @@ void setup()
   delay(pSettings->WAIT_PERIOD);
   initServer();
   delay(pSettings->WAIT_PERIOD);
+  
   echoInterruptOn();
+
+  buttonInterruptOn();
+
   //setupWiFiManager();
   //initEcho();  // interrupt lijkt foutmelding te veroorzaken, kan liggen aan combinatie met eeprom, wifi(manager)
   // volgens bronnen (https://circuits4you.com/2017/12/19/esp8266-fatal-exception-wdt-reset/)
@@ -865,7 +962,12 @@ void loop()
   otaHandle();
   //ArduinoOTA.handle();
 
-  mdns.update();
+  //mdns.update();
+  if (detectButtonFlag == true)
+  {
+    toggleWiFi();   // only toggle between AP and STA by using the button, not saving in EEPROM
+    detectButtonFlag = false;
+  }
 
   // For ESP8266WebServer
   server.handleClient();

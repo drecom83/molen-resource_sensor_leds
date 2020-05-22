@@ -150,9 +150,6 @@ public:
     this->addressOffset = this->address + storageSize;
     //eraseSettings();
     setupEEPROM();
-
-    /* TODO: change this... it's used in the during development phase */
-    //this->startAsAccessPoint = false;
   };
 
   ~Settings()

@@ -637,7 +637,7 @@ void showSettings() {
 }
 
 void handleHelp() {
-  help(server, pSettings);
+  help_nl(server, pSettings);
 }
 
 void handleNetworkSSID() {

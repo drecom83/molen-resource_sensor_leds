@@ -7,6 +7,9 @@
 class WiFiSettings
 {
 private:
+  /* Maximum size of EEPROM, SPI_FLASH_SEC_SIZE comes from spi_flash.h */
+  const uint16_t MAX_EEPROM_SIZE = SPI_FLASH_SEC_SIZE;
+
   /* wait period in milliseconds, value comes from the Settings class */
   uint32_t WAIT_PERIOD = 0;
 
@@ -42,10 +45,10 @@ public:
   {
     this->WAIT_PERIOD = pSettings->WAIT_PERIOD;
     /* Storage for AP and Network SSID, plus AP and Network Password */
-    storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
+    this->storageSize = 132;   // including 4 NULL characters in total (1 for each part) 
 
     /* if there is not enough space on EEPROM, writing will fail and reading will return an empty String */
-    if (pSettings->setOffsetAddress(storageSize) == true)  // is there enough space on EEPROM?
+    if (pSettings->setOffsetAddress(this->storageSize) == true)  // is there enough space on EEPROM?
     {
       this->storageSizeIsAvailable = true;
       this->address = pSettings->getOffsetAddress();

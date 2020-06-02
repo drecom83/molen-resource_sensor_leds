@@ -130,24 +130,23 @@ public:
 public:
   Settings()
   {
-    storageSize = sizeof(initNumber) + 
-                  sizeof(version) + 
-                  sizeof(startAsAccessPoint) +
-                  sizeof(allowSendingDataValue) +
-                  33 +                  // max size targetServer + 1
-                  sizeof(targetPort) + 
-                  17 +                  // max size of targetPath + 1
-                  sizeof(isOpen) + 
-                  sizeof(showData) + 
-                  sizeof(rawCounter) + 
-                  37 +                  // MAX_DEVICEKEY + 1
-                  129;                  // MAX_RATIO_ARGUMENT + 1
-
+    this->storageSize = sizeof(this->initNumber) + 
+                        sizeof(this->version) + 
+                        sizeof(this->startAsAccessPoint) +
+                        sizeof(this->allowSendingDataValue) +
+                        33 +                  // max size targetServer + 1
+                        sizeof(this->targetPort) + 
+                        17 +                  // max size of targetPath + 1
+                        sizeof(this->isOpen) + 
+                        sizeof(this->showData) + 
+                        sizeof(this->rawCounter) + 
+                        65 +                 // MAX_RATIO_ARGUMENT + 1
+                        37;                  // MAX_DEVICEKEY + 1
 
     /* set new address offset */
     //this->initSettings();
     //this->setOffsetAddress(storageSize);
-    this->addressOffset = this->address + storageSize;
+    this->addressOffset = this->address + this->storageSize;
     //eraseSettings();
     setupEEPROM();
   };

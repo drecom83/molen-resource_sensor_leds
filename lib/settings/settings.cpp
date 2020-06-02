@@ -209,7 +209,9 @@ uint16_t Settings::saveSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
  
-  EEPROM.begin(this->storageSize);
+ 
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
 
   //uint32_t start = micros();
   EEPROM.put(address, this->initNumber);
@@ -278,7 +280,8 @@ bool Settings::isInitialized() {
 bool Settings::eraseSettings() {
   delay(this->WAIT_PERIOD);
 
-  EEPROM.begin(this->storageSize);
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
   // replace values in EEPROM with 0xff
   for (uint16_t i = 0; i < this->storageSize; i++) {
     EEPROM.write(this->address + i,0xff);
@@ -303,7 +306,8 @@ uint16_t Settings::initSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
 
-  EEPROM.begin(this->storageSize);
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
 
   //uint32_t start = micros();
   EEPROM.put(address, this->factoryInitNumber);
@@ -370,7 +374,8 @@ uint16_t Settings::getSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
 
-  EEPROM.begin(this->storageSize);
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
   
   EEPROM.get(address, this->initNumber);
   address += sizeof(this->initNumber);
@@ -434,7 +439,8 @@ uint16_t Settings::saveConfigurationSettings()
   uint16_t firstAddress = this->address;
   uint16_t address = this->address;
  
-  EEPROM.begin(this->storageSize);
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
 
   address += sizeof(this->initNumber);
   address += sizeof(this->version);
@@ -518,7 +524,8 @@ uint16_t Settings::saveConfigurationSettings()
     EEPROM.put(address, myDeviceKey);
   //}
   */
-  address += 37;
+ 
+///  address += 37;
 
   EEPROM.commit();    // with success it will return true
   EEPROM.end();       // release RAM copy of EEPROM content

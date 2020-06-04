@@ -55,6 +55,8 @@ uint32_t pulsesPerMinute = 0;       // holds the value of pulses per minute
 uint32_t revolutions = 0;           // holds the value of revolutions of the first axis, calculated with ratio
 uint32_t viewPulsesPerMinute = 0;   // holds the value of ends per minute calculated with ratio
 
+String language = "NL";
+
 Settings settings = Settings();
 Settings* pSettings = &settings;
 //////////////////////
@@ -160,21 +162,6 @@ void setupWiFi(){
     myssid = "ESP-" + WiFi.macAddress();
   }
   String mypass = pWifiSettings->readAccessPointPassword();
-  ///*
-  Serial.println("myssid in class");
-  Serial.println(pWifiSettings->getAccessPointSSID());
-  Serial.println("password in class");
-  Serial.println(pWifiSettings->getAccessPointPassword());
-  Serial.println("adres van eerste karakter van accesspointer ssid");
-  Serial.println(&myssid[0]);
-  Serial.println("myssid in EEPROM");
-  Serial.println(myssid);
-  Serial.println(myssid[0]);
-  Serial.println(myssid[1]);
-  Serial.println(myssid[2]);
-  Serial.println("password in EEPROM");
-  Serial.println(mypass);
-  //*/
 
   //WiFi.begin();  // alleen voor het maken van een connectie in station mode
   //WiFi.mode(WIFI_AP_STA);
@@ -554,7 +541,14 @@ void echoInterruptOff() {
 }
 
 void handlePage() {
-  homePage(server, pSettings);
+  if (language == "NL")
+  {
+    homePage_nl(server, pSettings);
+  }
+  else
+  {
+    homePage(server, pSettings);
+  }
 
   //writeResult(client, result);
   flashPin(BLUE_LED, 100);
@@ -563,11 +557,25 @@ void handlePage() {
 }
 
 void handleWiFi() {
-  wifi(server, pSettings, pWifiSettings);
+  if (language == "NL")
+  {
+    wifi_nl(server, pSettings, pWifiSettings);
+  }
+  else
+  {
+    wifi(server, pSettings, pWifiSettings);
+  }
 }
 
 void handleDevice() {
-  device(server, pSettings);
+  if (language == "NL")
+  {
+    device_nl(server, pSettings);
+  }
+  else
+  {
+    device(server, pSettings);
+  }
 }
 
 void handleSse() {
@@ -596,7 +604,14 @@ void handleJson() {
 */
 
 void handleArguments() {
-  arguments(server, pSettings);
+  if (language == "NL")
+  {
+    arguments_nl(server, pSettings);
+  }
+  else
+  {
+    arguments(server, pSettings);
+  }
   showSettings();
 }
 
@@ -633,11 +648,25 @@ void mydebug() {
 }
 
 void showSettings() {
-  showSavedSettings(server, pSettings);
+  if (language == "NL")
+  {
+    showSavedSettings_nl(server, pSettings);
+  }
+  else
+  {
+    showSavedSettings(server, pSettings);
+  }
 }
 
 void handleHelp() {
-  help_nl(server, pSettings);
+  if (language == "NL")
+  {
+    help_nl(server, pSettings);
+  }
+  else
+  {
+    help(server, pSettings);
+  }
 }
 
 void handleNetworkSSID() {
@@ -688,6 +717,7 @@ void handleNetworkSSID() {
 void handleWifiConnect() {
   uint8_t argumentCounter = 0;
   String result = "";
+  String result_nl = "";
   //result += ( server.method() == HTTP_GET)?"GET":"POST";
   //result += "\nArguments: ";
   //result +=  server.args();
@@ -731,6 +761,7 @@ void handleWifiConnect() {
       if (argumentCounter > 0) {
         pWifiSettings->saveAuthorizationNetwork();
         result += "Network connection data has been saved\n";
+        result_nl += "Netwerk verbindingsgegevens zijn opgeslagen\n";
       }
     }
     if (name == "erase")
@@ -740,21 +771,31 @@ void handleWifiConnect() {
         {
           pWifiSettings->eraseAccessPointSettings();
           result += "Access Point data has been erased\n";
+          result_nl += "Access Point gegevens zijn gewist\n";
         }
         if (target == "eraseNetworkData")
         {
           pWifiSettings->eraseNetworkSettings();
           result += "Network connection data has been erased\n";
+          result_nl += "Netwerk verbindingsgegevens zijn gewist\n";
         }
         if (target == "eraseWiFiData")
         {
           pWifiSettings->eraseWiFiSettings();
           result += "Access Point data and Network connection data has been erased\n";
+          result_nl += "Access Point gegevens en Netwerk verbindingsgegevens zijn gewist\n";
         }
       }
     }
   }
-  server.send(200, "text/plain", result);
+  if (language == "NL")
+  {
+    server.send(200, "text/plain", result_nl);
+  }
+  else
+  {
+    server.send(200, "text/plain", result);
+  }
   Serial.println(result);
 }
 
@@ -762,6 +803,7 @@ void handleDeviceSettings()
 {
   uint8_t argumentCounter = 0;
   String result = "";
+  String result_nl = "";
   //result += ( server.method() == HTTP_GET)?"GET":"POST";
   //result += "\nArguments: ";
   //result +=  server.args();
@@ -845,15 +887,29 @@ void handleDeviceSettings()
     if (argumentCounter > 0) {
       pSettings->saveConfigurationSettings();
       result += "Device data has been saved\n";
+      result_nl += "Apparaatgegevens zijn opgeslagen\n";
     }
   }
-  server.send(200, "text/plain", result);
+  if (language == "NL")
+  {
+    server.send(200, "text/plain", result_nl);
+  }
+  else
+  {
+    server.send(200, "text/plain", result);
+  }
   Serial.println(result);
 }
 
 void handleNotFound(){
-  notFound(server, pSettings);
-
+  if (language == "NL")
+  {
+    notFound_nl(server, pSettings);
+  }
+  else
+  {
+    notFound(server, pSettings);
+  }
 }
 
 void toggleWiFi()

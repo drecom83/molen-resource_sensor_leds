@@ -9,10 +9,10 @@ void homePage(ESP8266WebServer &server, Settings * pSettings)
   result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
   result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
   result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
-  result += "<title>molen</title>\r\n";
+  result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Teller van de sensor: \r\n";
+  result += "Counter of the sensor: \r\n";
   result += "<span id='rawCounter'>-</span>\r\n";
   result += "<br>\r\n";
   result += "<br>\r\n";
@@ -20,10 +20,10 @@ void homePage(ESP8266WebServer &server, Settings * pSettings)
   result += "<span id='ratio'>-</span>\r\n";
   result += "<br>\r\n";
   result += "<br>-->\r\n";
-  result += "Teller van wiekenas omwentelingen: \r\n";
+  result += "Counter for the number of revolutions of the blades: \r\n";
   result += "<h2><span id='revolutions'>-</span></h2>\r\n";
   result += "<br>\r\n";
-  result += "Aantal enden per minuut: \r\n";
+  result += "Number of blades per minute: \r\n";
   result += "<h2><span id='viewPulsesPerMinute'>-</span></h2>\r\n";
   result += "<br>\r\n";
   result += "<div id='message'></div>\r\n";
@@ -87,7 +87,7 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
   result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
   result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
-  result += "<title>molen</title>\r\n";
+  result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
   result += "Valid commands\r\n";
@@ -161,7 +161,7 @@ void showSavedSettings(ESP8266WebServer &server, Settings * pSettings)
   result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
   result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
   result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
-  result += "<title>molen</title>\r\n";
+  result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
   result += "Settings\r\n";
@@ -245,7 +245,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
   result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
   result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
-  result += "<title>molen</title>\r\n";
+  result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
   result += "Settings for the device\r\n";
@@ -617,7 +617,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
   result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
   result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
-  result += "<title>molen</title>\r\n";
+  result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
   result += "Don't want to share with internet or no WiFi available? Choose AccessPoint\r\n";
@@ -863,6 +863,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   server.send(200, "text/html", result);
 }
 
+///////////////// sse is language independent ///////////////////////////
 void sse(ESP8266WebServer &server, Settings * pSettings, uint32_t revolutions, uint32_t viewPulsesPerMinute)
 {
   String result = "retry: ";
@@ -963,8 +964,9 @@ void notFound_nl(ESP8266WebServer &server, Settings * pSettings)
   for (uint8_t i=0; i< server.args(); i++){
     result += " " +  server.argName(i) + ": " +  server.arg(i) + "\n";
   }
-  result += "gebruik /count/ voor metingen\n";
-  result += "gebruik /help/ voor commando's en andere hulp\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
   server.send(404, "text/plain", result);
 }
 
@@ -981,19 +983,19 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "</head>\r\n";
   result += "<body>\r\n";
   result += "Geldige commando's\r\n";
-  result += "<br><br>\r\n";
+  result += "<br><br><br>\r\n";
   result += "<a href='/count/'>count</a> tellerstanden en aantal enden\r\n";
-  result += "<br>\r\n";
+  result += "<br><br>\r\n";
   result += "<a href='/help/'>help</a> help scherm (dit scherm)\r\n";
-  result += "<br>\r\n";
-  result += "<a href='/device/'>instellingen</a> instellingen voor het telapparaat/\r\n";
-  result += "<br>\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/device/'>instellingen</a> instellingen voor het telapparaat\r\n";
+  result += "<br><br>\r\n";
   result += "<a href='/wifi/'>wifi</a> instellingen om de WiFi van het telapparaat te gebruiken (Access Point of Netwerk Station)\r\n";
-  result += "<br>\r\n";
-  result += "<a href='/ap/'>access point</a>stel het apparaat in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
-  result += "<br>\r\n";
-  result += "<a href='/network/'>netwerk station</a>stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP address</a>)\r\n";
-  result += "<br>\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/ap/'>access point</a> stel het apparaat in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP address</a>)\r\n";
+  result += "<br><br>\r\n";
   /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
   result += "<br>\r\n";
@@ -1072,7 +1074,7 @@ void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "<br>\r\n";
   result += "<br>\r\n";
-  result += "<a href='/count/'>Show counts</a>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
   result += "</body>\r\n";
   result += "</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
@@ -1094,7 +1096,7 @@ void arguments_nl(ESP8266WebServer &server, Settings * pSettings)
       uint8_t delimiterCount = 0;
       
       if (server.argName(i).length() > pSettings->getMAX_RATIO_ARGUMENT()) {
-        message += "ratio argument is too long, maximum size is: ";
+        message += "ratio argument is te lang, maximum lengte is: ";
         message += String(pSettings->getMAX_RATIO_ARGUMENT());
       
       }
@@ -1105,7 +1107,7 @@ void arguments_nl(ESP8266WebServer &server, Settings * pSettings)
           }
         }
         if ((delimiterCount > pSettings->getMAX_AXES()) || (delimiterCount > pSettings->getMAX_WHEELS())) {
-          message += "ratio argument is invalid, must be: bladeCount-gearTeeth.gearTeeth-gearTeeth ... Set value to 1";
+          message += "ratio argument is ongeldig, moet eruit zien als: aantalWieken-aantalTanden.aantalTanden-aantalTanden ... Zet waarde op 1";
           pSettings->setRatioArgument(pSettings->getFactoryRatioArgument());
           pSettings->ratio = 1.0;
           pSettings->pulseFactor = 1.0;
@@ -1133,32 +1135,32 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>molen</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Settings for the device\r\n";
+  result += "Instellingen voor het telapparaat\r\n";
   result += "<br><br>\r\n";
-  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"device\" checked>Device\r\n";
+  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"device\" checked>Telapparaat\r\n";
   result += "<br>\r\n";
-  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"targetServerData\">Target server data\r\n";
+  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"targetServerData\">Gegevens naar de server\r\n";
   result += "<br>\r\n";
-  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"targetServer\">Target server\r\n";
+  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"targetServer\">Server instellingen\r\n";
   result += "<br>\r\n";
   result += "<br>\r\n";
   result += "<div id=\"device\">\r\n";
   result += "    <br>\r\n";
-  result += "    Set the WiFi start Mode <input id=\"startWiFiMode\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
+  result += "    Set de  WiFi start modus in <input id=\"startWiFiMode\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryStartModeWiFi();
   result += "\" value=\"reset\">\r\n";
   result += "    <br>\r\n";
   result += "    <input type=\"radio\" name=\"startWiFiMode\" value=\"ap\" ";
   result += (pSettings->beginAsAccessPoint() == true)?"checked":"";
-  result += "> start as Access Point\r\n";
+  result += "> start als Access Point\r\n";
   result += "    <br>\r\n";
   result += "    <input type=\"radio\" name=\"startWiFiMode\" value=\"network\" ";
   result += (pSettings->beginAsAccessPoint() == true)?"":"checked";
-  result += "> start as Network Station\r\n";
+  result += "> start als Netwerk Station\r\n";
   result += "    <br><br>\r\n";
-  result += "  Counter: <input type=\"text\" name=\"counter\" min=\"0\" max=\"4294967296\" maxlength=\"10\" size=\"12\" placeholder=\"";
+  result += "  Telstand: <input type=\"text\" name=\"counter\" min=\"0\" max=\"4294967296\" maxlength=\"10\" size=\"12\" placeholder=\"";
   result += String(pSettings->getCounter());
-  result += "\" title=\"This shows the current count, you may reset is to another value (0 - 4294967296)\" value=\"\" factorySetting=\"124\" onkeyup=\"checkNumber(this, 'counterMessage', 'Invalid counter (0 - 4294967296)');\">\r\n";
+  result += "\" title=\"Dit is de huidige telstand, in te stellen naar een waarde (0 - 4294967296)\" value=\"\" factorySetting=\"124\" onkeyup=\"checkNumber(this, 'counterMessage', 'Ongeldig nummer (0 - 4294967296)');\">\r\n";
   result += "    <input id=\"counter\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += String(pSettings->getFactoryCounter());
   result += "\" value=\"reset\">\r\n";
@@ -1166,12 +1168,12 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "  <br>\r\n";
   result += "  Ratio: <input type=\"text\" name=\"ratio\" maxlength=\"64\" size=\"40\" placeholder=\"4-72.33-80.24\" title=\"4-72.33-80\" value=\"";
   result += pSettings->getRatioArgument();
-  result += "\" onkeyup=\"checkRatio(this, 'ratioMessage', 'Invalid ratio character or combination (-. -- .. .-)');\">\r\n";
+  result += "\" onkeyup=\"checkRatio(this, 'ratioMessage', 'Ongeldig ratio karakter of combinatie (-. -- .. .-)');\">\r\n";
   result += "    <input id=\"ratio\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryRatioArgument();
   result += "\" value=\"reset\">\r\n";
   result += "  <span id=\"ratioMessage\"></span><br><br>\r\n";
-  result += "  After saving, wait until about 5 to 10 seconds.\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"deviceButton\" type=\"button\" name=\"deviceButton\" value=\"Save\" onclick=\"saveDevice(this)\">\r\n";
   result += "  <input type=\"button\" name=\"deviceCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -1179,44 +1181,44 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "<div id=\"targetServerData\">\r\n";
   result += "      <br>\r\n";
-  result += "      Handle data for the target server\r\n";
+  result += "      Verwerking van gegevens voor de server\r\n";
   result += "      <br>\r\n";
   result += "      <input type=\"checkbox\" name=\"allowSendToTarget\" onclick=\"allowSendToTargetCheck(this)\" value=\"allow\" ";
   result += (pSettings->allowSendingData() == true)?"checked":"";
-  result += "> allow sending data to the target server\r\n";
+  result += "> toestaan om gegevens nar de server te sturen\r\n";
   result += "      <input id=\"allowSendToTarget\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryAllowSendData();
   result += "\" value=\"reset\">\r\n";
   result += "      <br><br>\r\n";
   result += "      <div id=\"allowed\">\r\n";
-  result += "        Is the building open? <input id=\"entree\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
+  result += "        Is het gebouw open? <input id=\"entree\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryEntree();
   result += "\" value=\"reset\">\r\n";
   result += "        <br>\r\n";
   result += "        <input type=\"radio\" name=\"entree\" value=\"open\" ";
   result += (pSettings->getIsOpen() == true)?"checked":"";
-  result += "> flag as Open\r\n";
+  result += "> Open\r\n";
   result += "        <br>\r\n";
   result += "        <input type=\"radio\" name=\"entree\" value=\"closed\" ";
   result += (pSettings->getIsOpen() == true)?"":"checked";
-  result += "> flag as Closed\r\n";
+  result += "> Gesloten\r\n";
   result += "        <br><br>\r\n";
   result += "        <input type=\"checkbox\" name=\"showDataOnTarget\" onclick=\"showDataOnTargetCheck(this)\" value=\"show\" ";
   result += (pSettings->getShowData() == true)?"checked":"";
-  result += "> show speed and message on the target server\r\n";
+  result += "> laat de snelheid en de boodschap zien op de server\r\n";
   result += "        <input id=\"showDataOnTarget\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryShowData();
   result += "\" value=\"reset\">\r\n";
   result += "        <br><br>\r\n";
   result += "        <div id=\"showMessage\">\r\n";
-  result += "          Message: <input type=\"text\" name=\"message\" maxlength=\"80\" size=\"40\" placeholder=\"message\" value=\"\"> message on the target server (max 80 characters)\r\n";
+  result += "          Boodschap: <input type=\"text\" name=\"message\" maxlength=\"80\" size=\"40\" placeholder=\"message\" value=\"\"> boodschap voor op de server (max 80 karakters)\r\n";
   result += "          <input id=\"message\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"\" value=\"reset\">\r\n";
   result += "          <br><br>\r\n";
   result += "        </div>\r\n";
   result += "      </div>\r\n";
-  result += "      <span id=\"ssidList\">Please wait for a list or a message to show here</span>\r\n";
+  result += "      <span id=\"ssidList\">Even geduld: er komt een WiFi lijst of anders een melding</span>\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds.\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"targetServerDataButton\" type=\"button\" name=\"targetServerDataButton\" value=\"Save\" onclick=\"saveTargetServerData(this)\">\r\n";
   result += "  <input type=\"button\" name=\"targetServerDataCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -1224,16 +1226,16 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "<div id=\"targetServer\">\r\n";
   result += "    <br>\r\n";
-  result += "    Target server\r\n";
+  result += "    Server\r\n";
   result += "    <br>\r\n";
-  result += "  Domain name: <input type=\"text\" name=\"targetServer\" maxlength=\"32\" size=\"33\" placeholder=\"protocol://domain name\" value=\"";
+  result += "  Domein naam: <input type=\"text\" name=\"targetServer\" maxlength=\"32\" size=\"33\" placeholder=\"protocol://domein naam\" value=\"";
   result += pSettings->getTargetServer();
-  result += "\"> Max 32 characters\r\n";
+  result += "\"> Max 32 karakters\r\n";
   result += "    <input id=\"targetServer\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryTargetServer();
   result += "\" value=\"reset\">\r\n";
   result += "    <br>\r\n";
-  result += "    Port: <input type=\"text\" name=\"targetPort\" min=\"0\" max=\"65536\" maxlength=\"5\" size=\"6\" placeholder=\"port\" title=\"0 - 65536\" value=\"";
+  result += "    Poort: <input type=\"text\" name=\"targetPort\" min=\"0\" max=\"65536\" maxlength=\"5\" size=\"6\" placeholder=\"poort\" title=\"0 - 65536\" value=\"";
   result += String(pSettings->getTargetPort());
   result += "\"  onkeyup=\"checkNumber(this, 'portMessage', 'Invalid counter (0 - 65536)');\">\r\n";
   result += "    <input id=\"targetPort\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
@@ -1241,14 +1243,14 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "\" value=\"reset\">\r\n";
   result += "    <span id=\"portMessage\"></span>\r\n";
   result += "    <br>\r\n";
-  result += "    Path: <input type=\"text\" name=\"targetPath\" maxlength=\"16\" size=\"17\" placeholder=\"path\" value=\"";
+  result += "    Pad: <input type=\"text\" name=\"targetPath\" maxlength=\"16\" size=\"17\" placeholder=\"pad\" value=\"";
   result += pSettings->getTargetPath();
   result += "\"> Max 16 characters\r\n";
   result += "    <input id=\"targetPath\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryTargetPath();
   result += "\" value=\"reset\">\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds and then go to <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (or a given IP address) to connect.\r\n";
+  result += "  Na 'Save' even wachten en dan naar <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (of een uitgedeeld IP adres) om te verbinden.\r\n";
   result += "    <br>\r\n";
   result += "  <input id=\"targetServerButton\" type=\"button\" name=\"targetServerButton\" value=\"Save\" onclick=\"saveTargetServer(this)\">\r\n";
   result += "  <input type=\"button\" name=\"targetServerCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -1257,6 +1259,9 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
   result += "<script>\r\n";
   result += "  function factorySetting(component) {\r\n";
   result += "      var id = component.id || \"\";\r\n";
@@ -1505,23 +1510,23 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "<title>molen</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Don't want to share with internet or no WiFi available? Choose AccessPoint\r\n";
+  result += "Wil gegevens niet delen met internet of geen WiFi beschikbaar? Kies AccessPoint\r\n";
   result += "<br>\r\n";
-  result += "You want to share with internet and have WiFi available? Choose Network\r\n";
+  result += "Wil gegevens delen met internet en er is WiFi beschibaar? Kies Netwerk Station\r\n";
   result += "<br><br>\r\n";
   result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"ap\">Access Point\r\n";
   result += "<br>\r\n";
-  result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"network\">Network Station\r\n";
+  result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"network\">Netwerk Station\r\n";
   result += "<br>\r\n";
-  result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"erase\">Go to Erase-WiFi-Data menu\r\n";
+  result += "<input type=\"radio\" name=\"wifi\" onclick=\"displayWiFiMode()\" value=\"erase\">Ga naar Verwijder WiFi-gegevens menu\r\n";
   result += "<br>\r\n";
   result += "<br>\r\n";
   result += "<div id=\"ap\">\r\n";
-  result += "  Clients can get access to this Access Point using the SSID and password entered below\r\n";
+  result += "  Apparaten kunnen toegang krijgen tot dit Access Point met het hieronder ingevulde SSID en wachtwoord\r\n";
   result += "  <br>\r\n";
-  result += "  An empty SSID will result in a default SSID for the device\r\n";
+  result += "  Een niet-ingevuld SSID geeft het standaard SSID van het Access Point\r\n";
   result += "  <br>\r\n";
-  result += "  An empty password will result in an unencrypted, open Access Point\r\n";
+  result += "  Een niet-ingevuld wachtwoord geeft een onveilige, open Access Point\r\n";
   result += "  <br>\r\n";
   result += "  SSID: <input type=\"text\" name=\"ssid\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointSSID() == "")
@@ -1536,10 +1541,10 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += pWiFiSettings->getAccessPointSSID();
   result += "\">\r\n";
   result += "  <br>\r\n";
-  result += "  Password: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"";
+  result += "  Wachtwoord: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"";
   if (pWiFiSettings->getAccessPointPassword() == "")
   {
-    result += "password";
+    result += "wachtwoord";
   }
   else
   {
@@ -1547,50 +1552,53 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   }
   result += "\" value=\"";
   result += pWiFiSettings->getAccessPointPassword();
-  result += "\" onkeyup=\"checkURIComponent(this, 'apPasswordMessage', 'Invalid password character');\">\r\n";
+  result += "\" onkeyup=\"checkURIComponent(this, 'apPasswordMessage', 'Ongeldig wachtwoord karakter');\">\r\n";
   result += " <span id=\"apPasswordMessage\"></span>\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds and then go to <a href=\"http://192.168.4.1/count/\">http://192.168.4.1/count/</a> to connect.\r\n";
+  result += "  Na 'Save' even wachten en dan naar <a href=\"http://192.168.4.1/\">http://192.168.4.1/</a> om te verbinden.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"apButton\" type=\"button\" name=\"apButton\" value=\"Save\" onclick=\"saveAP(this)\">\r\n";
   result += "  <input type=\"button\" name=\"apCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
   result += "</div>\r\n";
   result += "\r\n";
   result += "<div id=\"network\">\r\n";
-  result += "  Connect to one of the WiFi networks below\r\n";
+  result += "  Maak verbinding met een van de WiFi netwerken hieronder\r\n";
   result += "  <br><br>\r\n";
-  result += "  <span id=\"ssidList\">Please wait for a list or a message to show here</span>\r\n";
+  result += "  <span id=\"ssidList\">Wacht even tot er een lijst of een melding verschijnt</span>\r\n";
   result += "  <br><br>\r\n";
   result += "  <span id=\"selectedWiFiPassword\">";
-  result += "Give the password for the selected WiFi network <span id=\"selectedWiFi\"></span>\r\n";
+  result += "Geef het wachtwoord voor het geselecteerde WiFi netwerk <span id=\"selectedWiFi\"></span>\r\n";
   result += "     <br>\r\n";
-  result += "     Password: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"password\" value=\"";
-  result += "\" onkeyup=\"checkURIComponent(this, 'networkPasswordMessage', 'Invalid password character');\">\r\n";
+  result += "     Wachtwoord: <input type=\"password\" name=\"password\" maxlength=\"32\" size=\"33\" placeholder=\"password\" value=\"";
+  result += "\" onkeyup=\"checkURIComponent(this, 'networkPasswordMessage', 'Ongeldig wachtwoord karakter');\">\r\n";
   result += "     <br><br>\r\n";
   result += "  </span>\r\n";
-  result += "After saving, wait about 5 to 10 seconds and then go to <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (or a given IP address) to connect.\r\n";
+  result += "  Na 'Save' even wachten en dan naar <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (of een uitgedeeld IP adres) om te verbinden.\r\n";
   result += "  <br>\r\n";
   result += "   <input id=\"networkButton\" type=\"button\" name=\"networkButton\" value=\"Save\" onclick=\"saveNetwork(this)\">\r\n";
   result += "   <input type=\"button\" name=\"networkCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
   result += "  <span id=\"networkPasswordMessage\"></span>\r\n";
   result += "</div>\r\n";
   result += "<div id=\"erase\">\r\n";
-  result += "  !!!Warning!!!\r\n";
+  result += "  !!!Opgelet!!!\r\n";
   result += "  <br><br>\r\n";
-  result += "  A click on an Erase button will immediately erase saved data! Your current connection will stay alive.\r\n";
+  result += "  Een klik op de 'Erase' knop zal onmiddellijk de opgeslagen gegevens verwijderen! De huidige verbinding blijft bestaan.\r\n";
   result += "  <br><br>\r\n";
-  result += "Do NOT Erase and <input type=\"button\" name=\"networkButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
+  result += "Verwijder NIETS en <input type=\"button\" name=\"networkButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
   result += "  <br><br>\r\n";
-  result += "  <input id=\"eraseAPData\" type=\"button\" name=\"eraseAPDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Erase Access Point data, will result in an unencrypted, open Access Point\r\n";
+  result += "  <input id=\"eraseAPData\" type=\"button\" name=\"eraseAPDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Verwijderen van Access Point resulteert in in een onveilig, open Access Point\r\n";
   result += "  <br>\r\n";
-  result += "  <input id=\"eraseNetworkData\" type=\"button\" name=\"eraseNetworkDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Erase Network data\r\n";
+  result += "  <input id=\"eraseNetworkData\" type=\"button\" name=\"eraseNetworkDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Verwijder Netwerk gegevens\r\n";
   result += "  <br>\r\n";
-  result += "  <input id=\"eraseWiFiData\" type=\"button\" name=\"eraseWiFiDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Erase Access Point AND Network data\r\n";
+  result += "  <input id=\"eraseWiFiData\" type=\"button\" name=\"eraseWiFiDataButton\" value=\"Erase\" onclick=\"eraseWiFiData(this)\"> Verwijder Access Point EN Netwerk gegevens\r\n";
   result += "</div>\r\n";
   result += "\r\n";
   result += "  <br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
   result += "<script>\r\n";
   result += "function checkURIComponent(component, messageId, message) {\r\n";
   result += "  var invalidCharacterArray = [\"&\"]\r\n";
@@ -1693,7 +1701,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "    showNetwork += \"<div>\" + uniqueShowNetworkList[key] + \"</div>\";\r\n";
   result += "  }\r\n";
   result += "  if (showNetwork == \"\") {\r\n";
-  result += "    showNetwork = \"No WiFi signal available\"\r\n";
+  result += "    showNetwork = \"Geen WiFi signaal beschikbaar\"\r\n";
   result += "  }\r\n";
   result += "  else {\r\n";
   result += "    document.getElementById(\"selectedWiFiPassword\").style.display=\"block\"\r\n";

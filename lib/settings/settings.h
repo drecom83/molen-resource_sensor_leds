@@ -106,11 +106,21 @@ private:
   /* 4 bytes to store, counts every pulse, range 0 - 2^32 = 4294967296 */
   uint32_t rawCounter = 0;
 
-  /* 4 bytes to store, factory setting, scounts every pulse, range 0 - 2^32 = 4294967296 */
+  /* 4 bytes to store, factory setting, counts every pulse, range 0 - 2^32 = 4294967296 */
   uint32_t factoryRawCounter = 0;
 
   /* sizeof of serialized variable, marked as 'to store' */
   uint16_t storageSize;
+
+  /* 3 bytes to store, language */
+  String language = "NL";
+
+  /* 3 bytes to store, factory settings for language */
+  String factoryLanguage = "NL";
+
+  /* 17 bytes to store, last given IP number to the device from a WiFi network, will not be saved */
+  String lastNetworkIP = "Unknown";
+
 
 public:
 
@@ -132,6 +142,7 @@ public:
   {
     this->storageSize = sizeof(this->initNumber) + 
                         sizeof(this->version) + 
+                        3 +                   // language (NL) + 1
                         sizeof(this->startAsAccessPoint) +
                         sizeof(this->allowSendingDataValue) +
                         33 +                  // max size targetServer + 1
@@ -314,5 +325,17 @@ public:
 
   /* for target server */
   void setTargetServerMessage(String message);
+
+  /* language, automatically saved */
+  void setLanguage(String language);
+
+  /* language, automatically saved */
+  String getLanguage();
+
+  /* network station last known IP address, will not be saved saved */
+  void setLastNetworkIP(String lastNetworkIP);
+
+  /* network station last known IP address, will not be saved */
+  String getLastNetworkIP();
 };
 #endif

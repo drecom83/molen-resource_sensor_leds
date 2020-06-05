@@ -55,8 +55,6 @@ uint32_t pulsesPerMinute = 0;       // holds the value of pulses per minute
 uint32_t revolutions = 0;           // holds the value of revolutions of the first axis, calculated with ratio
 uint32_t viewPulsesPerMinute = 0;   // holds the value of ends per minute calculated with ratio
 
-String language = "NL";
-
 Settings settings = Settings();
 Settings* pSettings = &settings;
 //////////////////////
@@ -77,7 +75,7 @@ bool detectButtonFlag = false;
 void setupWiFi();
 void showSettings();
 void switchToAccessPoint();
-void handleHelp();
+void handleShowWiFiMode();
 //-void detectPulse();
 //void setupArduinoOTA();
 //void checkmDNS();
@@ -199,6 +197,8 @@ void setupWiFi(){
 
   digitalWrite(YELLOW_1_LED, HIGH);
   digitalWrite(YELLOW_2_LED, LOW);
+  
+  pSettings->beginAsAccessPoint(true);
  
   echoInterruptOn();  // to prevent error with Delay
 
@@ -262,12 +262,14 @@ void setupWiFiManager () {
     
       echoInterruptOn();  // to prevent error with Delay
       networkConnected = true;
+      pSettings->setLastNetworkIP(WiFi.localIP().toString());
       //* TODO: change this... it's working in the during development phase, in production it is remarked */
       //pSettings->allowSendingData(true);
 
       //dnsServer.reset(new DNSServer());
         digitalWrite(YELLOW_2_LED, LOW);
         digitalWrite(YELLOW_3_LED, HIGH);
+        pSettings->beginAsAccessPoint(false);
       }
     }
     if (networkConnected == false) {
@@ -315,7 +317,8 @@ void switchToAccessPoint() {
   echoInterruptOff();  // to prevent error with Delay
 
   //showSettings();
-  handleHelp();
+  pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
+  handleShowWiFiMode();
   delay(pSettings->WAIT_PERIOD);
 
   server.close();
@@ -345,7 +348,7 @@ void switchToNetwork() {
   echoInterruptOff();  // to prevent error with Delay
 
   //showSettings();
-  handleHelp();
+  handleShowWiFiMode();
   delay(pSettings->WAIT_PERIOD);
 
   server.close();
@@ -547,7 +550,7 @@ void echoInterruptOff() {
 }
 
 void handleCountPage() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     countPage_nl(server, pSettings);
   }
@@ -557,8 +560,20 @@ void handleCountPage() {
   }
 }
 
+void handleShowWiFiMode()
+{
+  if (pSettings->getLanguage() == "NL")
+  {
+    showWiFiMode_nl(server, pSettings);
+  }
+  else
+  {
+    showWiFiMode(server, pSettings);
+  }
+}
+
 void handleWiFi() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     wifi_nl(server, pSettings, pWifiSettings);
   }
@@ -569,7 +584,7 @@ void handleWiFi() {
 }
 
 void handleDevice() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     device_nl(server, pSettings);
   }
@@ -584,7 +599,7 @@ void handleSse() {
 }
 
 void handleArguments() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     arguments_nl(server, pSettings);
   }
@@ -628,7 +643,7 @@ void mydebug() {
 }
 
 void showSettings() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     showSavedSettings_nl(server, pSettings);
   }
@@ -639,7 +654,7 @@ void showSettings() {
 }
 
 void handleHelp() {
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     help_nl(server, pSettings);
   }
@@ -649,6 +664,47 @@ void handleHelp() {
   }
 }
 
+void handleLanguage() {
+  uint8_t argumentCounter = 0;
+  String result = "";
+  String result_nl = "";
+  //result += ( server.method() == HTTP_GET)?"GET":"POST";
+  //result += "\nArguments: ";
+  //result +=  server.args();
+  //result += "\n";
+  if (server.method() == HTTP_POST)
+  {
+    argumentCounter = server.args();  // if argumentCounter > 0 then save
+    String name = "";
+    String language = "";
+    for (uint8_t i=0; i< server.args(); i++){
+      //result += " " +  server.argName(i) + ": " +  server.arg(i) + "\n";
+      if (server.argName(i) == "name") {
+        name = server.arg(i);
+      }
+      if (server.argName(i) == "language") {
+        language = server.arg(i);
+      }
+    }
+    // zoek name 
+    if (name == "help")
+    {
+      if (argumentCounter > 0)
+      {
+        pSettings->setLanguage(language);
+      }
+    }
+  }
+  if (pSettings->getLanguage() == "NL")
+  {
+    server.send(200, "text/plain", result_nl);
+  }
+  else
+  {
+    server.send(200, "text/plain", result);
+  }
+  Serial.println(result);
+}
 void handleNetworkSSID() {
   // creates a list of {ssid, including input field , dBm}
   String result = "";
@@ -768,7 +824,7 @@ void handleWifiConnect() {
       }
     }
   }
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     server.send(200, "text/plain", result_nl);
   }
@@ -870,7 +926,7 @@ void handleDeviceSettings()
       result_nl += "Apparaatgegevens zijn opgeslagen\n";
     }
   }
-  if (language == "NL")
+  if (pSettings->getLanguage() == "NL")
   {
     server.send(200, "text/plain", result_nl);
   }
@@ -933,6 +989,7 @@ void initServer()
   server.on("/networkssid/", handleNetworkSSID);
   server.on("/wifiConnect/", handleWifiConnect);
   server.on("/deviceSettings/", handleDeviceSettings);
+  server.on("/language/", handleLanguage);
 
   // data handler
   server.on("/data.sse/", handleSse);

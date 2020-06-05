@@ -218,6 +218,12 @@ uint16_t Settings::saveSettings()
   address += sizeof(this->initNumber);
   EEPROM.put(address, this->version);
   address += sizeof(this->version);
+
+  char myLanguage[3];  // one more for the null character
+  strcpy(myLanguage, this->language.c_str());
+  EEPROM.put(address, myLanguage);
+  address += 3;
+
   EEPROM.put(address, this->startAsAccessPoint);
   address += sizeof(this->startAsAccessPoint);
   EEPROM.put(address, this->allowSendingDataValue);
@@ -315,6 +321,11 @@ uint16_t Settings::initSettings()
   EEPROM.put(address, this->version);
   address += sizeof(this->version);
 
+  char myFactoryLanguage[3];  // one more for the null character
+  strcpy(myFactoryLanguage, this->factoryLanguage.c_str());
+  EEPROM.put(address, myFactoryLanguage);
+  address += 3;
+
   EEPROM.put(address, this->factoryStartAsAccessPoint);
   address += sizeof(this->factoryStartAsAccessPoint);
   EEPROM.put(address, this->factoryAllowSendingDataValue);
@@ -382,6 +393,11 @@ uint16_t Settings::getSettings()
   EEPROM.get(address, this->version);
   address += sizeof(this->version);
 
+  char myLanguage[3];  // one more for the null character
+  EEPROM.get(address, myLanguage);
+  this->language = String(myLanguage);
+  address += 3;
+
   EEPROM.get(address, this->startAsAccessPoint);
   address += sizeof(this->startAsAccessPoint);
   EEPROM.get(address, this->allowSendingDataValue);
@@ -445,6 +461,8 @@ uint16_t Settings::saveConfigurationSettings()
   address += sizeof(this->initNumber);
   address += sizeof(this->version);
   
+  address += 3;  // language
+
   //bool check_startAsAccessPoint;
   //EEPROM.get(address, check_startAsAccessPoint);
   //if (check_startAsAccessPoint != this->startAsAccessPoint) {
@@ -676,4 +694,44 @@ String Settings::getFactoryTargetPath()
 void Settings::setTargetPath(String targetPath)
 {
   this->targetPath = targetPath;
+}
+
+void Settings::setLanguage(String language)
+{
+  this->language = language;
+
+   // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
+  delay(this->WAIT_PERIOD);
+
+  uint16_t address = this->address;
+ 
+  //EEPROM.begin(this->storageSize);
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
+  address += sizeof(this->initNumber);
+  address += sizeof(this->version);
+
+  char myLanguage[3];  // one more for the null character
+  strcpy(myLanguage, this->language.c_str());
+  EEPROM.put(address, myLanguage);
+  address += 3;
+
+  EEPROM.commit();    // with success it will return true
+  EEPROM.end();       // release RAM copy of EEPROM content
+
+  delay(this->WAIT_PERIOD);
+}
+
+String Settings::getLanguage()
+{
+  return this->language;
+}
+
+void Settings::setLastNetworkIP(String lastNetworkIP)
+{
+  this->lastNetworkIP = lastNetworkIP;
+}
+
+String Settings::getLastNetworkIP()
+{
+  return this->lastNetworkIP;
 }

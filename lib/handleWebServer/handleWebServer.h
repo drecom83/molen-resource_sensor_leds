@@ -13,6 +13,9 @@ void arguments_nl(ESP8266WebServer &server, Settings * pSettings);
 /* show the help page */
 void help(ESP8266WebServer &server, Settings * pSettings);
 void help_nl(ESP8266WebServer &server, Settings * pSettings);
+/* show WiFi mode */
+void showWiFiMode(ESP8266WebServer &server, Settings * pSettings);
+void showWiFiMode_nl(ESP8266WebServer &server, Settings * pSettings);
 /* show saved setting values from EEPROM */
 void showSavedSettings(ESP8266WebServer &server, Settings * pSettings);
 void showSavedSettings_nl(ESP8266WebServer &server, Settings * pSettings);

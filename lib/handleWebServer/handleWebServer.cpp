@@ -59,6 +59,29 @@ void countPage(ESP8266WebServer &server, Settings * pSettings)
   server.send(200, "text/html", result);
 }
 
+void showWiFiMode(ESP8266WebServer &server, Settings * pSettings)
+{
+  String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
+  result += "<head>\r\n";
+  result += "<meta charset=\"utf-8\">\r\n";
+  result += "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\r\n";
+  result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
+  result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
+  result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
+  result += "<title>mill</title>\r\n";
+  result += "</head>\r\n";
+  result += "<body>\r\n";
+  result += "Wifi mode is changing while the middle led is on, please wait until it is off and select the right WiFi (SSID) before selecting the home/help page\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
+  result += "\r\n</body>\r\n</html>\r\n";
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
 void help(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
@@ -71,7 +94,13 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Possible acties\r\n";
+  result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
+  result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
+  result += " WiFi mode";
+  result += "<br>\r\n";
+  result += "<div id=\"sendMessage\"></div>\r\n";
+  result += "<br><br>\r\n";
+  result += "Possible actions\r\n";
   result += "<br><br><br>\r\n";
   result += "<a href='/count/'>count</a> show pulses and number of blades per minute\r\n";
   result += "<br><br>\r\n";
@@ -83,7 +112,9 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br>\r\n";
   result += "<a href='/ap/'>access point</a> set the device to act as Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/network/'>network station</a> set the device to act as part of a WiFi network (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address</a>)\r\n";
+  result += "<a href='/network/'>network station</a> set the device to act as part of a WiFi network (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address, last known is: ";
+  result += pSettings->getLastNetworkIP();
+  result += ")\r\n";
   result += "<br><br>\r\n";
   /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
@@ -119,6 +150,34 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "&nbsp;&nbsp;&nbsp;&nbsp;4-72.33-80.24 means: 4 blades and 1st gear on the same axis. Second and third gear also on the same axis. Fourth gear has the sensor\r\n";
   result += "<br>\r\n";
   */
+  result += "<script>\r\n";
+  result += "  function selectLanguage(component) {\r\n";
+  result += "    var params = \"name=help\" + \"&language=\" + component.id;\r\n";
+  result += "    document.getElementById(\"NL\").disabled = true;\r\n";
+  result += "    document.getElementById(\"EN\").disabled = true;\r\n";
+  result += "    sendData(params);\r\n";
+  result += "  }\r\n";
+  result += "  function sendData(data) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", \"/language/\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
+  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "     var myResponseText = \"\";\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "        window.location.reload();\r\n";
+  //result += "       myResponseText = this.responseText || \"\";\r\n";
+  result += "     }\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "       myResponseText = this.statusText || \"\";\r\n";
+  result += "      }\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+  result += "</script>\r\n";
+
   result += "\r\n</body>\r\n</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -931,6 +990,29 @@ void countPage_nl(ESP8266WebServer &server, Settings * pSettings)
    server.send(200, "text/html", result);
 }
 
+void showWiFiMode_nl(ESP8266WebServer &server, Settings * pSettings)
+{
+  String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
+  result += "<head>\r\n";
+  result += "<meta charset=\"utf-8\">\r\n";
+  result += "<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\r\n";
+  result += "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\r\n";
+  result += "<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->\r\n";
+  result += "<link rel='icon' type='image/png' href='data:image/png;base64,iVBORw0KGgo='>\r\n";
+  result += "<title>mill</title>\r\n";
+  result += "</head>\r\n";
+  result += "<body>\r\n";
+  result += "Wifi modus wijziging is bezig zolang het middelste gele led aan, als het uit is selecteer dan de WiFi (SSID) en daarna de begin/help pagina\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
+  result += "\r\n</body>\r\n</html>\r\n";
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
 void help_nl(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
@@ -943,6 +1025,20 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>molen</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
+  result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
+  result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
+  result += " WiFi modus: ";
+  if (pSettings->beginAsAccessPoint() == true)
+  {
+    result += "Access Point\r\n";
+  }
+  else
+  {
+    result += "Network Station\r\n";
+  }  
+  result += "<br>\r\n";
+  result += "<div id=\"sendMessage\"></div>\r\n";
+  result += "<br><br>\r\n";
   result += "Mogelijke acties\r\n";
   result += "<br><br><br>\r\n";
   result += "<a href='/count/'>count</a> tellerstanden en aantal enden per minuut\r\n";
@@ -955,7 +1051,10 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br>\r\n";
   result += "<a href='/ap/'>access point</a> stel het apparaat in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres</a>)\r\n";
+  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres, laatst bekende adres is: ";
+  result += pSettings->getLastNetworkIP();
+  result += ")\r\n";
+
   result += "<br><br>\r\n";
 
   // url-commands
@@ -993,6 +1092,33 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "&nbsp;&nbsp;&nbsp;&nbsp;4-72.33-80.24 means: 4 blades and 1st gear on the same axis. Second and third gear also on the same axis. Fourth gear has the sensor\r\n";
   result += "<br>\r\n";
   */
+  result += "<script>\r\n";
+  result += "  function selectLanguage(component) {\r\n";
+  result += "    var params = \"name=help\" + \"&language=\" + component.id;\r\n";
+  result += "    document.getElementById(\"NL\").disabled = true;\r\n";
+  result += "    document.getElementById(\"EN\").disabled = true;\r\n";
+  result += "    sendData(params);\r\n";
+  result += "  }\r\n";
+  result += "  function sendData(data) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", \"/language/\");\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
+  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "     var myResponseText = \"\";\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "        window.location.reload();\r\n";
+  //result += "       myResponseText = this.responseText || \"\";\r\n";
+  result += "     }\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "       myResponseText = this.statusText || \"\";\r\n";
+  result += "      }\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+  result += "</script>\r\n";
   result += "\r\n</body>\r\n</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -1309,7 +1435,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "    xhr.open(\"POST\", \"/deviceSettings/\");\r\n";
   result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
   result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
-  result += "      document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = \"Even geduld\";\r\n";
   result += "      xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
   result += "        var myResponseText = \"\";\r\n";
   result += "        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
@@ -1592,7 +1718,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "    xhr.open(\"POST\", \"/wifiConnect/\");\r\n";
   result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
   result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
-  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Even geduld\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
   result += "     var myResponseText = \"\";\r\n";
   result += "      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";

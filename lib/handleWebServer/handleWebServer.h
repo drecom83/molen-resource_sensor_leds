@@ -4,12 +4,9 @@
 #include "settings.h"
 #include "WiFiSettings.h"
 
-/* show homepage to see the counter */
-void homePage(ESP8266WebServer &server, Settings * pSettings);
-void homePage_nl(ESP8266WebServer &server, Settings * pSettings);
-/* page not found message */
-void notFound(ESP8266WebServer &server, Settings * pSettings);
-void notFound_nl(ESP8266WebServer &server, Settings * pSettings);
+/* show page to see the counter */
+void countPage(ESP8266WebServer &server, Settings * pSettings);
+void countPage_nl(ESP8266WebServer &server, Settings * pSettings);
 /* get and handle arguments on the settings-page */
 void arguments(ESP8266WebServer &server, Settings * pSettings);
 void arguments_nl(ESP8266WebServer &server, Settings * pSettings);

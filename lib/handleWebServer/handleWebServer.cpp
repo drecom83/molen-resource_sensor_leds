@@ -1,6 +1,6 @@
 #include "handleWebServer.h"
 
-void homePage(ESP8266WebServer &server, Settings * pSettings)
+void countPage(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
   result += "<head>\r\n";
@@ -28,9 +28,8 @@ void homePage(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id='message'></div>\r\n";
   result += "<br>\r\n";
-  result += "<a href='/help/'>Show help</a>\r\n";
   result += "<br>\r\n";
-  result += "<a href='/count/'>Show counts</a>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
   result += "<script>\r\n";
   result += "if(typeof(EventSource) !== 'undefined') {\r\n";
   //result += "    document.getElementById('result').innerHTML = 'sse event is supported'\r\n";
@@ -54,28 +53,10 @@ void homePage(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n</body>\r\n</html>\r\n";
 
   //server.sendHeader("Content-Type", "text/html");
-   server.sendHeader("Cache-Control", "no-cache");
-   server.sendHeader("Connection", "keep-alive");
-   server.sendHeader("Pragma", "no-cache");
-   server.send(200, "text/html", result);
-}
-
-void notFound(ESP8266WebServer &server, Settings * pSettings)
-{
-  String result = "File Not Found\n\n";
-  result += "URI: ";
-  result +=  server.uri();
-  result += "\nMethod: ";
-  result += ( server.method() == HTTP_GET)?"GET":"POST";
-  result += "\nArguments: ";
-  result +=  server.args();
-  result += "\n";
-  for (uint8_t i=0; i< server.args(); i++){
-    result += " " +  server.argName(i) + ": " +  server.arg(i) + "\n";
-  }
-  result += "use /count/ for measurements\n";
-  result += "use /help/ to view commands and arguments\n";
-  server.send(404, "text/plain", result);
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
 }
 
 void help(ESP8266WebServer &server, Settings * pSettings)
@@ -90,20 +71,21 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Valid commands\r\n";
+  result += "Possible acties\r\n";
+  result += "<br><br><br>\r\n";
+  result += "<a href='/count/'>count</a> show pulses and number of blades per minute\r\n";
   result += "<br><br>\r\n";
-  result += "&nbsp;&nbsp;/count/&nbsp;&nbsp;show pulses and other measurment information on screen\r\n";
-  result += "<br>\r\n";
-  result += "&nbsp;&nbsp;/help/&nbsp;&nbsp;this screen\r\n";
-  result += "<br>\r\n";
-  result += "&nbsp;&nbsp;/device/&nbsp;&nbsp;page where you can enter device settings/\r\n";
-  result += "<br>\r\n";
-  result += "&nbsp;&nbsp;/wifi/&nbsp;&nbsp;page where you can choose Access Point or Station/\r\n";
-  result += "<br>\r\n";
-  result += "&nbsp;&nbsp;/ap/&nbsp;&nbsp;goto Access Point mode, goto http://192.168.4.1/\r\n";
-  result += "<br>\r\n";
-  result += "&nbsp;&nbsp;/network/&nbsp;&nbsp;be part of a WiFi network, goto http://molen.local/ (or via some IP address)\r\n";
-  result += "<br>\r\n";
+  result += "<a href='/help/'>help</a> help screen (this screen)\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/device/'>settings</a> settings for the device\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/wifi/'>wifi</a> settings to use the WiFi of the device (Access Point or Network Station)\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/ap/'>access point</a> set the device to act as Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+  result += "<br><br>\r\n";
+  result += "<a href='/network/'>network station</a> set the device to act as part of a WiFi network (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address</a>)\r\n";
+  result += "<br><br>\r\n";
+  /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
   result += "<br>\r\n";
   result += "&nbsp;&nbsp;/getSettings/&nbsp;&nbsp;view current saved settings\r\n";
@@ -119,8 +101,8 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "&nbsp;&nbsp;/data.sse&nbsp;&nbsp;get streaming data in SSE format, refresh rate is ";
   result += String(pSettings->SSE_RETRY);
   result += " ms\r\n";
-  //result += "<br>\r\n";
-  //result += "  /data.json/  get data in JSON format\r\n";
+  */
+  /*
   result += "<br><br>\r\n";
   result += "Valid arguments after /settings/?\r\n";
   result += "<br><br>\r\n";
@@ -136,14 +118,7 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "&nbsp;&nbsp;&nbsp;&nbsp;4-72.33-80.24 means: 4 blades and 1st gear on the same axis. Second and third gear also on the same axis. Fourth gear has the sensor\r\n";
   result += "<br>\r\n";
-  /*
-  result += "  margin, after a hit, the next measurement takes place after measuring a point further then the threshold plus margin distance (0 - 254 cm)\r\n";
-  result += "<br>\r\n";
-  result += "  threshold, distance to the measure point (1 - 254 cm)\n";
-  result += "<br>\r\n";
   */
-  result += "<br><br>\r\n";
-  result += "<a href='/count/'>Show counts</a>\r\n";
   result += "\r\n</body>\r\n</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -187,7 +162,7 @@ void showSavedSettings(ESP8266WebServer &server, Settings * pSettings)
   result += "\r\n";
   result += "<br>\r\n";
   result += "<br>\r\n";
-  result += "<a href='/count/'>Show counts</a>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
   result += "</body>\r\n";
   result += "</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");
@@ -329,7 +304,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "          <br><br>\r\n";
   result += "        </div>\r\n";
   result += "      </div>\r\n";
-  result += "      <span id=\"ssidList\">Please wait for a list or a message to show here</span>\r\n";
+  //result += "      <span id=\"ssidList\">Please wait for a list or a message to show here</span>\r\n";
   result += "  <br><br>\r\n";
   result += "  After saving, wait about 5 to 10 seconds.\r\n";
   result += "  <br>\r\n";
@@ -372,6 +347,9 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
   result += "<script>\r\n";
   result += "  function factorySetting(component) {\r\n";
   result += "      var id = component.id || \"\";\r\n";
@@ -706,6 +684,9 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "  <br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "\r\n";
+  result += "<br>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Go to the home/help page</a>\r\n";
   result += "<script>\r\n";
   result += "function checkURIComponent(component, messageId, message) {\r\n";
   result += "  var invalidCharacterArray = [\"&\"]\r\n";
@@ -891,7 +872,7 @@ void sse(ESP8266WebServer &server, Settings * pSettings, uint32_t revolutions, u
 }
 
 ///////////////// Vanaf hier Nederlands ///////////////////////////
-void homePage_nl(ESP8266WebServer &server, Settings * pSettings)
+void countPage_nl(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
   result += "<head>\r\n";
@@ -919,9 +900,8 @@ void homePage_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id='message'></div>\r\n";
   result += "<br>\r\n";
-  result += "<a href='/help/'>Help</a>\r\n";
-  //result += "<br>\r\n";
-  //result += "<a href='/count/'>Show counts</a>\r\n";
+  result += "<br>\r\n";
+  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
   result += "<script>\r\n";
   result += "if(typeof(EventSource) !== 'undefined') {\r\n";
   //result += "    document.getElementById('result').innerHTML = 'sse event is supported'\r\n";
@@ -951,25 +931,6 @@ void homePage_nl(ESP8266WebServer &server, Settings * pSettings)
    server.send(200, "text/html", result);
 }
 
-void notFound_nl(ESP8266WebServer &server, Settings * pSettings)
-{
-  String result = "Bestand niet gevonden\n\n";
-  result += "URI: ";
-  result +=  server.uri();
-  result += "\nMethode: ";
-  result += ( server.method() == HTTP_GET)?"GET":"POST";
-  result += "\nArgumenten: ";
-  result +=  server.args();
-  result += "\n";
-  for (uint8_t i=0; i< server.args(); i++){
-    result += " " +  server.argName(i) + ": " +  server.arg(i) + "\n";
-  }
-  result += "<br>\r\n";
-  result += "<br>\r\n";
-  result += "<a href='/help/'>Ga naar de begin/help pagina</a>\r\n";
-  server.send(404, "text/plain", result);
-}
-
 void help_nl(ESP8266WebServer &server, Settings * pSettings)
 {
   String result = "<!DOCTYPE HTML>\r\n<html>\r\n";
@@ -982,9 +943,9 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>molen</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Geldige commando's\r\n";
+  result += "Mogelijke acties\r\n";
   result += "<br><br><br>\r\n";
-  result += "<a href='/count/'>count</a> tellerstanden en aantal enden\r\n";
+  result += "<a href='/count/'>count</a> tellerstanden en aantal enden per minuut\r\n";
   result += "<br><br>\r\n";
   result += "<a href='/help/'>help</a> help scherm (dit scherm)\r\n";
   result += "<br><br>\r\n";
@@ -994,8 +955,10 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br><br>\r\n";
   result += "<a href='/ap/'>access point</a> stel het apparaat in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP address</a>)\r\n";
+  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres</a>)\r\n";
   result += "<br><br>\r\n";
+
+  // url-commands
   /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
   result += "<br>\r\n";
@@ -1009,12 +972,10 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "&nbsp;&nbsp;/reset/&nbsp;&nbsp;reset WiFi settings\r\n";
   result += "<br>\r\n";
-  */
   result += "<a href='/data.sse/' target='_blank'>/data.sse/</a> geeft streaming data in SSE format, ververstijd is ";
   result += String(pSettings->SSE_RETRY);
   result += " ms\r\n";
-  //result += "<br>\r\n";
-  //result += "  /data.json/  get data in JSON format\r\n";
+  */
   /*
   result += "<br><br>\r\n";
   result += "Valid arguments after /settings/?\r\n";
@@ -1185,7 +1146,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "      <br>\r\n";
   result += "      <input type=\"checkbox\" name=\"allowSendToTarget\" onclick=\"allowSendToTargetCheck(this)\" value=\"allow\" ";
   result += (pSettings->allowSendingData() == true)?"checked":"";
-  result += "> toestaan om gegevens nar de server te sturen\r\n";
+  result += "> toestaan om gegevens naar de server te sturen\r\n";
   result += "      <input id=\"allowSendToTarget\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryAllowSendData();
   result += "\" value=\"reset\">\r\n";
@@ -1216,7 +1177,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "          <br><br>\r\n";
   result += "        </div>\r\n";
   result += "      </div>\r\n";
-  result += "      <span id=\"ssidList\">Even geduld: er komt een WiFi lijst of anders een melding</span>\r\n";
+  //result += "      <span id=\"ssidList\">Even geduld: er komt een WiFi lijst of anders een melding</span>\r\n";
   result += "  <br><br>\r\n";
   result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
@@ -1245,7 +1206,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "    <br>\r\n";
   result += "    Pad: <input type=\"text\" name=\"targetPath\" maxlength=\"16\" size=\"17\" placeholder=\"pad\" value=\"";
   result += pSettings->getTargetPath();
-  result += "\"> Max 16 characters\r\n";
+  result += "\"> Max 16 karakters\r\n";
   result += "    <input id=\"targetPath\" type=\"button\" onclick=\"factorySetting(this)\" reset=\"";
   result += pSettings->getFactoryTargetPath();
   result += "\" value=\"reset\">\r\n";

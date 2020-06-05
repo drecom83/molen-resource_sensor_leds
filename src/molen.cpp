@@ -77,6 +77,7 @@ bool detectButtonFlag = false;
 void setupWiFi();
 void showSettings();
 void switchToAccessPoint();
+void handleHelp();
 //-void detectPulse();
 //void setupArduinoOTA();
 //void checkmDNS();
@@ -313,7 +314,10 @@ void resetWiFiManagerToFactoryDefaults () {
 void switchToAccessPoint() {
   echoInterruptOff();  // to prevent error with Delay
 
-  showSettings();
+  //showSettings();
+  handleHelp();
+  delay(pSettings->WAIT_PERIOD);
+
   server.close();
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
@@ -321,27 +325,29 @@ void switchToAccessPoint() {
   setupWiFi();
   delay(pSettings->WAIT_PERIOD);
 
-//setupArduinoOTA();  // geeft cause error, dus maar even weglaten
-//delay(WAIT_PERIOD);
+  //setupArduinoOTA();  // geeft cause error, dus maar even weglaten
+  //delay(WAIT_PERIOD);
 
-initServer();
-// start domain name server check
-//void checkmDNS() {
-  mdns.close();
-  while (mdns.begin("molen", WiFi.softAPIP())) {
-    Serial.println("MDNS responder started");
-    mdns.addService("http", "tcp", 80);
-  }
-//}
-// end domain name server check
+  initServer();
+  // start domain name server check
+  //void checkmDNS() {
+    mdns.close();
+    while (mdns.begin("molen", WiFi.softAPIP())) {
+      Serial.println("MDNS responder started");
+      mdns.addService("http", "tcp", 80);
+    }
+  //}
+  // end domain name server check
   echoInterruptOn();  // to prevent error with Delay
-
 }
 
 void switchToNetwork() {
   echoInterruptOff();  // to prevent error with Delay
 
-  showSettings();
+  //showSettings();
+  handleHelp();
+  delay(pSettings->WAIT_PERIOD);
+
   server.close();
   resetWiFiManagerToFactoryDefaults();
   delay(pSettings->WAIT_PERIOD);
@@ -540,20 +546,15 @@ void echoInterruptOff() {
   detachInterrupt(IR_RECEIVE_2);
 }
 
-void handlePage() {
+void handleCountPage() {
   if (language == "NL")
   {
-    homePage_nl(server, pSettings);
+    countPage_nl(server, pSettings);
   }
   else
   {
-    homePage(server, pSettings);
+    countPage(server, pSettings);
   }
-
-  //writeResult(client, result);
-  flashPin(BLUE_LED, 100);
-  debugMessage("Someone has entered the 'Count' page");
-
 }
 
 void handleWiFi() {
@@ -581,27 +582,6 @@ void handleDevice() {
 void handleSse() {
   sse(server, pSettings, revolutions, viewPulsesPerMinute);
 }
-/*
-void handleJson() {
-  String result = "{\r\n";
-  result += "  data: {\r\n";
-  result += "    \"revolutions\":";
-  result += String(revolutions);
-  result += ",\r\n";
-  result += "    \"rawCounter\":";
-  result += String(pSettings->rawCounter);
-  result += ",\r\n";
-  result += "    \"viewPulsesPerMinute\":";
-  result += String(viewPulsesPerMinute);
-  result += "\r\n";
-  result += "  }\r\n";
-  result += "}\r\n";
-   server.sendHeader("Cache-Control", "no-cache");
-   server.sendHeader("Connection", "keep-alive");
-   server.sendHeader("Pragma", "no-cache");
-   server.send(200, "application/json", result);
-}
-*/
 
 void handleArguments() {
   if (language == "NL")
@@ -901,17 +881,6 @@ void handleDeviceSettings()
   Serial.println(result);
 }
 
-void handleNotFound(){
-  if (language == "NL")
-  {
-    notFound_nl(server, pSettings);
-  }
-  else
-  {
-    notFound(server, pSettings);
-  }
-}
-
 void toggleWiFi()
 {
   // only toggle by using the button, not saving in EEPROM
@@ -948,30 +917,38 @@ void initServer()
 {
   server.close();
   // start webserver
-   server.on("/count/", handlePage);
-  //server.on("/pulse/", handlePulse);
-   server.on("/debug/", mydebug);
-   server.on("/wifi/", handleWiFi);
-   server.on("/ap/", switchToAccessPoint);
-   server.on("/network/", switchToNetwork);
-   server.on("/device/", handleDevice);
-   server.on("/data.sse/", handleSse);
-  //server.on("/data.json/", handleJson);
-   server.on("/settings/", handleArguments);
-   server.on("/eraseSettings/", eraseSettings);
-   server.on("/initSettings/", initSettings);
-   server.on("/getSettings/", getSettings);
-   server.on("/saveSettings/", saveSettings);
-   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
-   server.on("/help/", handleHelp);
-   server.on("/networkssid/", handleNetworkSSID);
-   server.on("/wifiConnect/", handleWifiConnect);
-   server.on("/deviceSettings/", handleDeviceSettings);
 
-  //server.onNotFound(handleNotFound);
-   server.onNotFound(handleHelp);
+  server.on("/help/", handleHelp);
+  server.on("/count/", handleCountPage);
+  server.on("/ap/", switchToAccessPoint);
+  server.on("/network/", switchToNetwork);
 
-   server.begin();
+  // handles notFound
+  server.onNotFound(handleHelp);
+
+  // interactive pages
+  server.on("/device/", handleDevice);
+  server.on("/wifi/", handleWiFi);
+  // handles input from interactive pages
+  server.on("/networkssid/", handleNetworkSSID);
+  server.on("/wifiConnect/", handleWifiConnect);
+  server.on("/deviceSettings/", handleDeviceSettings);
+
+  // data handler
+  server.on("/data.sse/", handleSse);
+
+  // url-commands, not used in normal circumstances
+  server.on("/settings/", handleArguments);
+  server.on("/eraseSettings/", eraseSettings);
+  server.on("/initSettings/", initSettings);
+  server.on("/getSettings/", getSettings);
+  server.on("/saveSettings/", saveSettings);
+  server.on("/reset/", resetWiFiManagerToFactoryDefaults);
+
+  // handles debug
+  server.on("/debug/", mydebug);
+
+  server.begin();
   Serial.println("HTTP server started");
 }
 

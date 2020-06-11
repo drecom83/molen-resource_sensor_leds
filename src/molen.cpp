@@ -32,7 +32,7 @@ const uint8 MAX_RATIO_ARGUMENT = 128; // Maximum length of ratioArgument
 // On a ESP8266-12 GPIO0 is used, physical name is pin D0
 // On a ESP8266-12 GPIO5 is used, physical name is pin D5
 
-const uint8_t IR_RECEIVE_1 = D0;    // Digital pin to read an incoming signal
+const uint8_t IR_RECEIVE_1 = D8;    // Digital pin to read an incoming signal
 const uint8_t IR_RECEIVE_2 = D5;    // Digital pin to read an incoming signal
 //const uint8_t OUTPUT_LED = D4;
 const uint8_t IR_SEND = D6;         // switch for IR send LED. 0 = off, 1 = on

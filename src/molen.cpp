@@ -500,12 +500,12 @@ void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
   delayInMillis(RELAX_PERIOD);
 
 
-  uint8_t result = 0;
+  //uint8_t result = 0;
   if ( (digitalRead(IR_RECEIVE_1) == true) && 
       (digitalRead(IR_RECEIVE_2) == true) &&
       (permissionToDetect == true) )
   {
-    result = 1;
+    //result = 1;
     permissionToDetect = false;
     flashPin(BLUE_LED, 1);
   }
@@ -519,7 +519,7 @@ void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
     //debugMessage("detectpulse aangeroepen");
     //uint8_t result = getEchoResult();
     //debugMessage("er mag weer gemeten worden");
-    pSettings->setCounter(pSettings->getCounter() + result);
+    pSettings->setCounter(pSettings->getCounter() + 1); // added 1 pulse // result);
     setGlobalPulsesPerMinute();
     // calculate with ratio
     if (pSettings->blades < 1) {

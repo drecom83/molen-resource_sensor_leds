@@ -32,10 +32,14 @@ const uint8 MAX_RATIO_ARGUMENT = 128; // Maximum length of ratioArgument
 // On a ESP8266-12 GPIO0 is used, physical name is pin D0
 // On a ESP8266-12 GPIO5 is used, physical name is pin D5
 
-const uint8_t IR_RECEIVE_1 = D8;    // Digital pin to read an incoming signal
-const uint8_t IR_RECEIVE_2 = D5;    // Digital pin to read an incoming signal
+// when using D0 only one direction of receiver works, so now using D8
+
+// D5 gives troubles when it is high at the start.
+
+const uint8_t IR_RECEIVE_1 = D5;    // Digital pin to read an incoming signal
+const uint8_t IR_RECEIVE_2 = D6;    // Digital pin to read an incoming signal
 //const uint8_t OUTPUT_LED = D4;
-const uint8_t IR_SEND = D6;         // switch for IR send LED. 0 = off, 1 = on
+const uint8_t IR_SEND = D8;         // switch for IR send LED. 0 = off, 1 = on
 
 const uint8_t BUTTON = D7;          // Digital pin to read button-push
 const uint8_t BLUE_LED = D4;
@@ -499,7 +503,6 @@ void ICACHE_RAM_ATTR detectPulse() {  // ICACHE_RAM_ATTR is voor interrupts
     // for energy savings a delay is added of n milliseconds
   delayInMillis(RELAX_PERIOD);
 
-
   //uint8_t result = 0;
   if ( (digitalRead(IR_RECEIVE_1) == true) && 
       (digitalRead(IR_RECEIVE_2) == true) &&
@@ -957,7 +960,7 @@ void toggleWiFi()
 void initHardware()
 {
   Serial.begin(115200);
-  pinMode(IR_SEND, OUTPUT);
+  pinMode(IR_SEND, OUTPUT);      // default LOW
   pinMode(IR_RECEIVE_1, INPUT);  // default down
   pinMode(IR_RECEIVE_2, INPUT);  // default down
   //pinMode(VALID_DISTANCE, OUTPUT);
@@ -1014,7 +1017,9 @@ void setup()
   /* It seems to help preventing ESPerror messages with mode(3,6) when
   using a delay */
   initHardware();
-  digitalWrite(IR_SEND, HIGH);
+  digitalWrite(IR_RECEIVE_1, LOW);
+  digitalWrite(IR_RECEIVE_2, LOW);
+
   delay(pSettings->WAIT_PERIOD);
 
   // see https://forum.arduino.cc/index.php?topic=121654.0 voor circuit brownout
@@ -1029,6 +1034,7 @@ void setup()
   {
     setupWiFiManager();   // part of local network as station
   }
+
   delay(pSettings->WAIT_PERIOD);
   setupArduinoOTA();
   delay(pSettings->WAIT_PERIOD);
@@ -1038,7 +1044,7 @@ void setup()
   echoInterruptOn();
 
   buttonInterruptOn();
-
+  digitalWrite(IR_SEND, HIGH);
   //setupWiFiManager();
   //initEcho();  // interrupt lijkt foutmelding te veroorzaken, kan liggen aan combinatie met eeprom, wifi(manager)
   // volgens bronnen (https://circuits4you.com/2017/12/19/esp8266-fatal-exception-wdt-reset/)

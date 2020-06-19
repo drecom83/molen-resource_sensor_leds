@@ -96,26 +96,49 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<body>\r\n";
   result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
   result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
-  result += " WiFi mode";
+  result += "<br><br>\r\n";
+  result += "WiFi mode: ";
+  if (pSettings->beginAsAccessPoint() == true)
+  {
+    result += "Access Point\r\n";
+    result += "<br>\r\n";
+    result += "(url: <a href='http://molen.local/' target='_blank'>molen.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+  }
+  else
+  {
+    result += "Network Station\r\n";
+    result += "<br>\r\n";
+    result += "(url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address, last known is: <a href='http://";
+    result += pSettings->getLastNetworkIP();
+    result += "/' target='_blank'>";
+    result += pSettings->getLastNetworkIP();
+    result += "</a>\r\n";
+    result += ")\r\n";
+  }  
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "<br><br>\r\n";
-  result += "Possible actions\r\n";
+  result += "Menu\r\n";
   result += "<br><br><br>\r\n";
-  result += "<a href='/count/'>count</a> show pulses and number of blades per minute\r\n";
+  result += "<a href='/count/'>Counter</a> show pulses and number of blades per minute\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/help/'>help</a> help screen (this screen)\r\n";
+  result += "<a href='/help/'>help</a> help/home screen\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>settings</a> settings for the device\r\n";
+  result += "<a href='/device/'>Counter settings</a> ratio, WiFi mode, Server settings\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/wifi/'>wifi</a> settings to use the WiFi of the device (Access Point or Network Station)\r\n";
+  result += "<a href='/wifi/'>WiFi</a> settings to connect the Counter to WiFi\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/ap/'>access point</a> set the device to act as Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+  /*
+  result += "<a href='/ap/'>access point</a> set the Counter to act as Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/network/'>network station</a> set the device to act as part of a WiFi network (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address, last known is: ";
+  result += "<a href='/network/'>network station</a> set the Counter to act as part of a WiFi network (url: <a href='http://molen.local/' target='_blank'>molen.local</a> or via a local IP address, last known is: <a href='http://";
   result += pSettings->getLastNetworkIP();
+  result += "/' target='_blank'>";
+  result += pSettings->getLastNetworkIP();
+  result += "</a>\r\n";
   result += ")\r\n";
   result += "<br><br>\r\n";
+  */
   /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
   result += "<br>\r\n";
@@ -282,7 +305,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>mill</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Settings for the device\r\n";
+  result += "Settings for the Counter\r\n";
   result += "<br><br>\r\n";
   result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"device\" checked>Device\r\n";
   result += "<br>\r\n";
@@ -320,7 +343,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += pSettings->getFactoryRatioArgument();
   result += "\" value=\"reset\">\r\n";
   result += "  <span id=\"ratioMessage\"></span><br><br>\r\n";
-  result += "  After saving, wait until about 5 to 10 seconds.\r\n";
+  result += "  After 'Save' wait for confirmation.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"deviceButton\" type=\"button\" name=\"deviceButton\" value=\"Save\" onclick=\"saveDevice(this)\">\r\n";
   result += "  <input type=\"button\" name=\"deviceCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -363,9 +386,8 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += "          <br><br>\r\n";
   result += "        </div>\r\n";
   result += "      </div>\r\n";
-  //result += "      <span id=\"ssidList\">Please wait for a list or a message to show here</span>\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds.\r\n";
+  result += "  after 'Save' wait for confirmation.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"targetServerDataButton\" type=\"button\" name=\"targetServerDataButton\" value=\"Save\" onclick=\"saveTargetServerData(this)\">\r\n";
   result += "  <input type=\"button\" name=\"targetServerDataCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -397,7 +419,7 @@ void device(ESP8266WebServer &server, Settings * pSettings)
   result += pSettings->getFactoryTargetPath();
   result += "\" value=\"reset\">\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds and then go to <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (or a given IP address) to connect.\r\n";
+  result += "  After 'Save' wait for confirmation.\r\n";
   result += "    <br>\r\n";
   result += "  <input id=\"targetServerButton\" type=\"button\" name=\"targetServerButton\" value=\"Save\" onclick=\"saveTargetServer(this)\">\r\n";
   result += "  <input type=\"button\" name=\"targetServerCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -671,7 +693,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "<div id=\"ap\">\r\n";
   result += "  Clients can get access to this Access Point using the SSID and password entered below\r\n";
   result += "  <br>\r\n";
-  result += "  An empty SSID will result in a default SSID for the device\r\n";
+  result += "  An empty SSID will result in a default SSID for the Counter\r\n";
   result += "  <br>\r\n";
   result += "  An empty password will result in an unencrypted, open Access Point\r\n";
   result += "  <br>\r\n";
@@ -702,7 +724,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "\" onkeyup=\"checkURIComponent(this, 'apPasswordMessage', 'Invalid password character');\">\r\n";
   result += " <span id=\"apPasswordMessage\"></span>\r\n";
   result += "  <br><br>\r\n";
-  result += "  After saving, wait about 5 to 10 seconds and then go to <a href=\"http://192.168.4.1/count/\">http://192.168.4.1/count/</a> to connect.\r\n";
+  result += "  After 'Save' wait for confirmation.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"apButton\" type=\"button\" name=\"apButton\" value=\"Save\" onclick=\"saveAP(this)\">\r\n";
   result += "  <input type=\"button\" name=\"apCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
@@ -720,7 +742,7 @@ void wifi(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiFiSe
   result += "\" onkeyup=\"checkURIComponent(this, 'networkPasswordMessage', 'Invalid password character');\">\r\n";
   result += "     <br><br>\r\n";
   result += "  </span>\r\n";
-  result += "After saving, wait about 5 to 10 seconds and then go to <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (or a given IP address) to connect.\r\n";
+  result += "  After 'Save' wait for confirmation.\r\n";
   result += "  <br>\r\n";
   result += "   <input id=\"networkButton\" type=\"button\" name=\"networkButton\" value=\"Save\" onclick=\"saveNetwork(this)\">\r\n";
   result += "   <input type=\"button\" name=\"networkCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
@@ -1027,36 +1049,50 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<body>\r\n";
   result += "<input id=\"EN\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"English\">\r\n";
   result += "<input id=\"NL\" type=\"button\" onclick=\"selectLanguage(this)\" value=\"Nederlands\">\r\n";
-  result += " WiFi modus: ";
+  result += "<br><br>\r\n";
+  result += "WiFi modus: ";
   if (pSettings->beginAsAccessPoint() == true)
   {
     result += "Access Point\r\n";
+    result += "<br>\r\n";
+    result += "(url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   }
   else
   {
-    result += "Network Station\r\n";
+    result += "Netwerk Station\r\n";
+    result += "<br>\r\n";
+    result += "(url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres, laatst bekende adres is: <a href='http://";
+    result += pSettings->getLastNetworkIP();
+    result += "/' target='_blank'>";
+    result += pSettings->getLastNetworkIP();
+    result += "</a>\r\n";
+    result += ")\r\n";
   }  
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "<br><br>\r\n";
-  result += "Mogelijke acties\r\n";
+  result += "Menu\n";
   result += "<br><br><br>\r\n";
-  result += "<a href='/count/'>count</a> tellerstanden en aantal enden per minuut\r\n";
+  result += "<a href='/count/'>Teller</a> tellerstanden en aantal enden per minuut\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/help/'>help</a> help scherm (dit scherm)\r\n";
+  result += "<a href='/help/'>help</a> begin/help scherm\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/device/'>instellingen</a> instellingen voor het telapparaat\r\n";
+  result += "<a href='/device/'>Teller instellingen</a> ratio, WiFi modus, Server instellingen\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/wifi/'>wifi</a> instellingen om de WiFi van het telapparaat te gebruiken (Access Point of Netwerk Station)\r\n";
+  result += "<a href='/wifi/'>WiFi</a> instellingen om de Teller te koppelen aan WiFi\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/ap/'>access point</a> stel het apparaat in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
+  /*
+  result += "<a href='/ap/'>access point</a> stel de Teller in als Access Point (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of <a href='http://192.168.4.1/' target='_blank'>http://192.168.4.1</a>)\r\n";
   result += "<br><br>\r\n";
-  result += "<a href='/network/'>netwerk station</a> stel het apparaat in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres, laatst bekende adres is: ";
+  result += "<a href='/network/'>netwerk station</a> stel de Teller in als onderdeel van een WiFi netwerk (url: <a href='http://molen.local/' target='_blank'>molen.local</a> of via een lokaal IP adres, laatst bekende adres is: <a href='http://";
   result += pSettings->getLastNetworkIP();
+  result += "/' target='_blank'>";
+  result += pSettings->getLastNetworkIP();
+  result += "</a>\r\n";
   result += ")\r\n";
 
   result += "<br><br>\r\n";
-
+  */
   // url-commands
   /*
   result += "&nbsp;&nbsp;/settings/&nbsp;&nbsp;alter settings with arguments\r\n";
@@ -1222,9 +1258,9 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<title>molen</title>\r\n";
   result += "</head>\r\n";
   result += "<body>\r\n";
-  result += "Instellingen voor het telapparaat\r\n";
+  result += "Instellingen voor de Teller\r\n";
   result += "<br><br>\r\n";
-  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"device\" checked>Telapparaat\r\n";
+  result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"device\" checked>Teller\r\n";
   result += "<br>\r\n";
   result += "<input type=\"radio\" name=\"settings\" onclick=\"displaySettings()\" value=\"targetServerData\">Gegevens naar de server\r\n";
   result += "<br>\r\n";
@@ -1303,7 +1339,6 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "          <br><br>\r\n";
   result += "        </div>\r\n";
   result += "      </div>\r\n";
-  //result += "      <span id=\"ssidList\">Even geduld: er komt een WiFi lijst of anders een melding</span>\r\n";
   result += "  <br><br>\r\n";
   result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
@@ -1337,7 +1372,7 @@ void device_nl(ESP8266WebServer &server, Settings * pSettings)
   result += pSettings->getFactoryTargetPath();
   result += "\" value=\"reset\">\r\n";
   result += "  <br><br>\r\n";
-  result += "  Na 'Save' even wachten en dan naar <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (of een uitgedeeld IP adres) om te verbinden.\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "    <br>\r\n";
   result += "  <input id=\"targetServerButton\" type=\"button\" name=\"targetServerButton\" value=\"Save\" onclick=\"saveTargetServer(this)\">\r\n";
   result += "  <input type=\"button\" name=\"targetServerCancelButton\" value=\"Cancel\" onclick=\"cancelSettings()\">\r\n";
@@ -1642,7 +1677,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "\" onkeyup=\"checkURIComponent(this, 'apPasswordMessage', 'Ongeldig wachtwoord karakter');\">\r\n";
   result += " <span id=\"apPasswordMessage\"></span>\r\n";
   result += "  <br><br>\r\n";
-  result += "  Na 'Save' even wachten en dan naar <a href=\"http://192.168.4.1/\">http://192.168.4.1/</a> om te verbinden.\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
   result += "  <input id=\"apButton\" type=\"button\" name=\"apButton\" value=\"Save\" onclick=\"saveAP(this)\">\r\n";
   result += "  <input type=\"button\" name=\"apCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";
@@ -1660,7 +1695,7 @@ void wifi_nl(ESP8266WebServer &server, Settings * pSettings, WiFiSettings * pWiF
   result += "\" onkeyup=\"checkURIComponent(this, 'networkPasswordMessage', 'Ongeldig wachtwoord karakter');\">\r\n";
   result += "     <br><br>\r\n";
   result += "  </span>\r\n";
-  result += "  Na 'Save' even wachten en dan naar <a href=\"http://molen.local/count/\">http://molen.local/count/</a> (of een uitgedeeld IP adres) om te verbinden.\r\n";
+  result += "  Na 'Save' even geduld tot er een bevestiging is.\r\n";
   result += "  <br>\r\n";
   result += "   <input id=\"networkButton\" type=\"button\" name=\"networkButton\" value=\"Save\" onclick=\"saveNetwork(this)\">\r\n";
   result += "   <input type=\"button\" name=\"networkCancelButton\" value=\"Cancel\" onclick=\"cancelWiFi()\">\r\n";

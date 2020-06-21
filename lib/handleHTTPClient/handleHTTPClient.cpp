@@ -73,13 +73,14 @@ void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, uint32_t revo
   httpClient.addHeader("Pragma", "no-cache");
 
   String post = getSendData(pSettings, revolutions, viewPulsesPerMinute);
-  int httpCode = httpClient.POST(post);   //Send the request
+  httpClient.POST(post);   //Send the request
+  //int httpCode = httpClient.POST(post);   //Send the request
   String payload = httpClient.getString();                  //Get the response payload
 
-  Serial.println(url);
-  Serial.println(post);
-  Serial.println(httpCode);   //Print HTTP return code
-  Serial.println(payload);    //Print request response payload
+  //Serial.println(url);
+  //Serial.println(post);
+  //Serial.println(httpCode);   //Print HTTP return code
+  //Serial.println(payload);    //Print request response payload
 
   httpClient.end();  //Close connection
 }

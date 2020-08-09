@@ -76,8 +76,8 @@ private:
   /* MAX_RATIO_ARGUMENT bytes to store, factory setting, user-entered ratio as argument, example: "4-72.99.33-80.24" */
   String factoryRatioArgument = "4-4"; // keeps ratioArgument, for future use in a form 
 
-  /* 4 bytes to store, version of this data */
-  float version = 0.1f;
+  /* 4 bytes to store, version of this firmware, hundreds are major versions */
+  float version = 0.0001f;  /* eg. 212.0045 is major 2, minor 12, patch 0045
 
   /* Maximum size of EEPROM, SPI_FLASH_SEC_SIZE comes from spi_flash.h */
   const uint16_t MAX_EEPROM_SIZE = SPI_FLASH_SEC_SIZE;
@@ -183,8 +183,10 @@ private:
   bool isInitialized();
 
 
-  
 public:
+  /* get version number, used for firmware updates */
+  String getFirmwareVersion();
+
   /* calculate the ratio using the ratioArgument and store the result in this->ratio */
   void calculateRatio(String ratioArgument);
 

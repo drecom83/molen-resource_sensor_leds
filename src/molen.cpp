@@ -5,6 +5,8 @@
 #include <WiFiUdp.h>
 
 #include "ota.h"
+#include "updateOverHTTP.h"
+
 #include "settings.h"
 #include "handleWebServer.h"
 #include "handleHTTPClient.h"
@@ -231,6 +233,7 @@ void switchToAccessPoint() {
   delay(pSettings->WAIT_PERIOD);
 
   initServer();
+
   // start domain name server check
     mdns.close();
     while (mdns.begin("molen", WiFi.softAPIP())) {
@@ -238,6 +241,7 @@ void switchToAccessPoint() {
       mdns.addService("http", "tcp", 80);
     }
   // end domain name server check
+
   echoInterruptOn();  // to prevent error with Delay
 }
 
@@ -265,7 +269,7 @@ void switchToNetwork() {
     Serial.println("MDNS responder started");
     mdns.addService("http", "tcp", 80);
   }
-
+  
   echoInterruptOn();  // to prevent error with Delay
 }
 
@@ -495,9 +499,72 @@ void mydebug() {
   Serial.print("readNetworkPassword: ");
   Serial.println(pWifiSettings->readNetworkPassword());
 
+  Serial.print("Chip ID: ");
+  Serial.println(ESP.getFlashChipId());
+ 
+  Serial.print("Chip Real Size: ");
+  Serial.println(ESP.getFlashChipRealSize());
+ 
+  Serial.print("Chip Size: ");
+  Serial.println(ESP.getFlashChipSize());
+ 
+  Serial.print("Chip Speed: ");
+  Serial.println(ESP.getFlashChipSpeed());
+ 
+  Serial.print("Chip Mode: ");
+  Serial.println(ESP.getFlashChipMode());
+
+  Serial.print("firmware version: ");
+  Serial.println(pSettings->getFirmwareVersion());
+
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
   server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
+void updateFirmware()
+{
+  String serverUrl = pSettings->getTargetServer();
+  uint16_t serverPort = pSettings->getTargetPort();
+  String uploadScript = "/updateFirmware/";
+  String version = pSettings->getFirmwareVersion();
+  Serial.println(serverUrl);
+  Serial.println(serverPort);
+  Serial.println(uploadScript);
+  Serial.println(version);
+
+  String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.send(200, "text/html", result);
+}
+
+/* void alive must be used in clients only
+but for now, in develop-phase it is allowed here
+TODO remove this when clients are available to test
+*/
+void alive() {
+  /* used to answer a xhr call from the browser that is connected to the server */
+  String result = "";
+  String myIP = "";
+  result += "IP address: ";
+  if (WiFi.getMode() == WIFI_AP)
+  {
+    myIP = WiFi.softAPIP().toString();
+  }
+  if (WiFi.getMode() == WIFI_STA)
+  {
+    myIP = WiFi.localIP().toString();
+  }
+  result += myIP;
+  result += "\r\n";
+  String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
+  server.sendHeader("Cache-Control", "no-cache");
+  server.sendHeader("Connection", "keep-alive");
+  server.sendHeader("Pragma", "no-cache");
+  server.sendHeader("Access-Control-Allow-Origin", allowServer);
   server.send(200, "text/html", result);
 }
 
@@ -826,9 +893,14 @@ void initServer()
   server.on("/getSettings/", getSettings);
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
+  server.on("/update/", updateFirmware);
 
   // handles debug
   server.on("/debug/", mydebug);
+
+  // handles a check if this url is available
+  // remove this when clients are availabe
+  server.on("/alive/", alive);
 
   server.begin();
   Serial.println("HTTP server started");
@@ -862,7 +934,7 @@ void setup()
   delay(pSettings->WAIT_PERIOD);
   initServer();
   delay(pSettings->WAIT_PERIOD);
-  
+
   echoInterruptOn();
 
   buttonInterruptOn();
@@ -873,6 +945,9 @@ void loop()
 {
   // for setupArduinoOTA
   otaHandle();
+
+  // update should be run on every loop
+  mdns.update();
 
   if (detectButtonFlag == true)
   {

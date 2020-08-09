@@ -1,6 +1,11 @@
 
 #include "settings.h"
 
+String Settings::getFirmwareVersion()
+{
+  return String(this->version);
+}
+
 String Settings::getDeviceKey()
 {
   return this->deviceKey;

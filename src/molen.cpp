@@ -523,7 +523,7 @@ void mydebug() {
   server.send(200, "text/html", result);
 }
 
-void updateFirmware()
+String updateFirmware()
 {
   String serverUrl = pSettings->getTargetServer();
   uint16_t serverPort = pSettings->getTargetPort();
@@ -535,10 +535,56 @@ void updateFirmware()
   Serial.println(version);
 
   String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
-  server.sendHeader("Cache-Control", "no-cache");
-  server.sendHeader("Connection", "keep-alive");
-  server.sendHeader("Pragma", "no-cache");
-  server.send(200, "text/html", result);
+  // server.sendHeader("Cache-Control", "no-cache");
+  // server.sendHeader("Connection", "keep-alive");
+  // server.sendHeader("Pragma", "no-cache");
+  // server.send(200, "text/html", result);
+  return result;
+}
+
+void handleVersion() {
+  uint8_t argumentCounter = 0;
+  String result = "";
+  String result_nl = "";
+
+  if (server.method() == HTTP_POST)
+  {
+    argumentCounter = server.args();
+    String name = "";
+    for (uint8_t i=0; i< server.args(); i++){
+      if (server.argName(i) == "name") {
+        name = server.arg(i);
+      }
+    }
+    // search name 
+    if (name == "update")
+    {
+      if (argumentCounter > 0)
+      {
+        result = updateFirmware();
+      }
+    }
+  }
+  if (pSettings->getLanguage() == "NL")
+  {
+    if (result == "[update] Update failed")
+    {
+      result_nl = "[update] Update mislukt";
+    }
+    if (result == "[update] Update no Update")
+    {
+      result_nl = "[update] Geen update aanwezig";
+    }
+    if (result == "[update] Update ok")
+    {
+      result_nl = "[update] Update ok";
+    }
+    server.send(200, "text/plain", result_nl);
+  }
+  else
+  {
+    server.send(200, "text/plain", result);
+  }
 }
 
 /* void alive must be used in clients only
@@ -626,6 +672,7 @@ void handleLanguage() {
     server.send(200, "text/plain", result);
   }
 }
+
 void handleNetworkSSID() {
   // creates a list of {ssid, including input field , dBm}
   String result = "";
@@ -893,7 +940,7 @@ void initServer()
   server.on("/getSettings/", getSettings);
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
-  server.on("/update/", updateFirmware);
+  server.on("/update/", handleVersion);
 
   // handles debug
   server.on("/debug/", mydebug);

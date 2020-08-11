@@ -13,6 +13,11 @@ public:
   uint32_t WAIT_PERIOD = 200;
 
 private:
+  /* 4 bytes to store, version of this firmware */
+  uint8_t major = 0;   // max 2^8 = 256
+  uint8_t minor = 0;   // max 2^8 = 256
+  uint16_t patch = 1;  // max 2^16 = 65536
+
   /* start as Access Point or as Network client */
   bool startAsAccessPoint = true;
 
@@ -76,9 +81,6 @@ private:
   /* MAX_RATIO_ARGUMENT bytes to store, factory setting, user-entered ratio as argument, example: "4-72.99.33-80.24" */
   String factoryRatioArgument = "4-4"; // keeps ratioArgument, for future use in a form 
 
-  /* 4 bytes to store, version of this firmware, hundreds are major versions */
-  float version = 0.0001f;  /* eg. 212.0045 is major 2, minor 12, patch 0045
-
   /* Maximum size of EEPROM, SPI_FLASH_SEC_SIZE comes from spi_flash.h */
   const uint16_t MAX_EEPROM_SIZE = SPI_FLASH_SEC_SIZE;
   
@@ -141,7 +143,9 @@ public:
   Settings()
   {
     this->storageSize = sizeof(this->initNumber) + 
-                        sizeof(this->version) + 
+                        sizeof(this->major) + 
+                        sizeof(this->minor) + 
+                        sizeof(this->patch) + 
                         3 +                   // language (NL) + 1
                         sizeof(this->startAsAccessPoint) +
                         sizeof(this->allowSendingDataValue) +
@@ -159,7 +163,8 @@ public:
     //this->setOffsetAddress(storageSize);
     this->addressOffset = this->address + this->storageSize;
     //eraseSettings();
-    setupEEPROM();
+    this->setupEEPROM();
+    this->setupUpdatedFirmware();
   };
 
   ~Settings()
@@ -179,11 +184,17 @@ private:
   String getFirstElement(String line, char delimiter);
   String getLastElement(String line, char delimiter);
 
-  //* check to see if the EEPROM settings are already there */
+  /* check to see if the EEPROM settings are already there */
   bool isInitialized();
 
+  /* check to see if the Firmware has been updated */
+  bool isUpdated();
+
+  /* checks for new update, using the version number and sets the new version number */
+  uint16_t setupUpdatedFirmware();
 
 public:
+
   /* get version number, used for firmware updates */
   String getFirmwareVersion();
 

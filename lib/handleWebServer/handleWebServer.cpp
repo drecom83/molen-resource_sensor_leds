@@ -118,6 +118,12 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "<br><br>\r\n";
+
+  result += "Version: <span id='version'></span>\r\n";
+  result += " <input id='updateFirmwareButton' type='button' onclick='updateFirmware()' value='Update Firmware'<br>\r\n";
+  result += " <div id=\"updateFirmwareMessage\"><div>\r\n";
+  result += "<br><br>\r\n";
+
   result += "Menu\r\n";
   result += "<br><br><br>\r\n";
   result += "<a href='/count/'>Counter</a> show pulses and number of blades per minute\r\n";
@@ -174,15 +180,27 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   */
   result += "<script>\r\n";
+  result += "  document.getElementById(\"version\").innerHTML = \"";
+  result += pSettings->getFirmwareVersion();
+  result += "\";\r\n";
+  result += "  function updateFirmware() {\r\n";
+  result += "    document.getElementById(\"updateFirmwareButton\").disabled = true\r\n";
+  result += "    document.getElementById(\"updateFirmwareMessage\").innerHTML = \"Please refresh this page after about 1 minute\"\r\n";
+  result += "    var params = \"name=update\";\r\n";
+  result += "    sendData(params, \"/update/\");\r\n";
+  result += "  };\r\n";
+  result += "</script>\r\n";
+
+  result += "<script>\r\n";
   result += "  function selectLanguage(component) {\r\n";
   result += "    var params = \"name=help\" + \"&language=\" + component.id;\r\n";
   result += "    document.getElementById(\"NL\").disabled = true;\r\n";
   result += "    document.getElementById(\"EN\").disabled = true;\r\n";
-  result += "    sendData(params);\r\n";
+  result += "    sendData(params, \"/language/\");\r\n";
   result += "  }\r\n";
-  result += "  function sendData(data) {\r\n";
+  result += "  function sendData(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
-  result += "    xhr.open(\"POST\", \"/language/\");\r\n";
+  result += "    xhr.open(\"POST\", path);\r\n";
   result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
   result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
   result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
@@ -1071,6 +1089,12 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   result += "<div id=\"sendMessage\"></div>\r\n";
   result += "<br><br>\r\n";
+
+  result += "Versie: <span id='version'></span>\r\n";
+  result += " <input id='updateFirmwareButton' type='button' onclick='updateFirmware()' value='Update Firmware'<br>\r\n";
+  result += " <div id=\"updateFirmwareMessage\"><div>\r\n";
+  result += "<br><br>\r\n";
+
   result += "Menu\n";
   result += "<br><br><br>\r\n";
   result += "<a href='/count/'>Teller</a> tellerstanden en aantal enden per minuut\r\n";
@@ -1129,15 +1153,27 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "<br>\r\n";
   */
   result += "<script>\r\n";
+  result += "  document.getElementById(\"version\").innerHTML = \"";
+  result += pSettings->getFirmwareVersion();
+  result += "\";\r\n";
+  result += "  function updateFirmware() {\r\n";
+  result += "    document.getElementById(\"updateFirmwareButton\").disabled = true\r\n";
+  result += "    document.getElementById(\"updateFirmwareMessage\").innerHTML = \"Na ongeveer 1 minuut kun je de pagina verversen\"\r\n";
+  result += "    var params = \"name=update\";\r\n";
+  result += "    sendData(params, \"/update/\");\r\n";
+  result += "  };\r\n";
+  result += "</script>\r\n";
+
+  result += "<script>\r\n";
   result += "  function selectLanguage(component) {\r\n";
   result += "    var params = \"name=help\" + \"&language=\" + component.id;\r\n";
   result += "    document.getElementById(\"NL\").disabled = true;\r\n";
   result += "    document.getElementById(\"EN\").disabled = true;\r\n";
-  result += "    sendData(params);\r\n";
+  result += "    sendData(params, \"/language/\");\r\n";
   result += "  }\r\n";
-  result += "  function sendData(data) {\r\n";
+  result += "  function sendData(data, path) {\r\n";
   result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
-  result += "    xhr.open(\"POST\", \"/language/\");\r\n";
+  result += "    xhr.open(\"POST\", path);\r\n";
   result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
   result += "    //xhr.setRequestHeader(\"Content-Type\", \"application/json\");\r\n";
   result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";

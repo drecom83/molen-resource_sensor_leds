@@ -3,7 +3,7 @@
 
 String Settings::getFirmwareVersion()
 {
-  return String(this->version);
+  return String(this->major) + "." + String(this->minor) + "." + String(this->patch);
 }
 
 String Settings::getDeviceKey()
@@ -196,7 +196,6 @@ uint16_t Settings::setupEEPROM()
 {
   // It seems to help preventing ESPerror messages with mode(3,6) when using a delay 
   delay(this->WAIT_PERIOD);
-
   if (!this->isInitialized())
   {
     this->initNumber = this->INITCHECK;
@@ -204,6 +203,30 @@ uint16_t Settings::setupEEPROM()
   }
   delay(this->WAIT_PERIOD);
   return this->getSettings();
+}
+
+uint16_t Settings::setupUpdatedFirmware()
+{
+  uint16_t address = this->address;
+  uint16_t firstAddress = this->address;
+  if (this->isUpdated())
+  { 
+    delay(this->WAIT_PERIOD);
+
+    EEPROM.begin(this->MAX_EEPROM_SIZE);
+    //EEPROM.put(address, this->initNumber);
+    address += sizeof(this->initNumber);
+    EEPROM.put(address, this->major);
+    address += sizeof(this->major);
+    EEPROM.put(address, this->minor);
+    address += sizeof(this->minor);
+    EEPROM.put(address, this->patch);
+    address += sizeof(this->patch);
+    EEPROM.end();  // release RAM copy of EEPROM content
+    
+    delay(this->WAIT_PERIOD);
+  }
+  return firstAddress - address;
 }
 
 uint16_t Settings::saveSettings()
@@ -221,8 +244,12 @@ uint16_t Settings::saveSettings()
   //uint32_t start = micros();
   EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
-  EEPROM.put(address, this->version);
-  address += sizeof(this->version);
+  EEPROM.put(address, this->major);
+  address += sizeof(this->major);
+  EEPROM.put(address, this->minor);
+  address += sizeof(this->minor);
+  EEPROM.put(address, this->patch);
+  address += sizeof(this->patch);
 
   char myLanguage[3];  // one more for the null character
   strcpy(myLanguage, this->language.c_str());
@@ -276,6 +303,32 @@ uint16_t Settings::saveSettings()
   return address - firstAddress;
 }
 
+bool Settings::isUpdated() {
+  uint16_t address = this->address;
+  delay(this->WAIT_PERIOD);
+  
+  EEPROM.begin(this->MAX_EEPROM_SIZE);
+  uint8_t currentMajor = this->major;
+  uint8_t currentMinor = this->minor;
+  uint16_t currentPatch = this->patch;
+  //EEPROM.get(address, this->initNumber);
+  address += sizeof(this->initNumber);
+  EEPROM.get(address, currentMajor);
+  address += sizeof(this->major);
+  EEPROM.get(address, currentMinor);
+  address += sizeof(this->minor);
+  EEPROM.get(address, currentPatch);
+  address += sizeof(this->patch);
+  EEPROM.end();  // release RAM copy of EEPROM content
+
+  delay(this->WAIT_PERIOD);
+  bool result = this->major != currentMajor &&
+                this->minor != currentMinor &&
+                this->patch != currentPatch;
+
+  return result;
+}
+
 bool Settings::isInitialized() {
   delay(this->WAIT_PERIOD);
   
@@ -323,9 +376,12 @@ uint16_t Settings::initSettings()
   //uint32_t start = micros();
   EEPROM.put(address, this->factoryInitNumber);
   address += sizeof(this->factoryInitNumber);
-  EEPROM.put(address, this->version);
-  address += sizeof(this->version);
-
+  EEPROM.put(address, this->major);
+  address += sizeof(this->major);
+  EEPROM.put(address, this->minor);
+  address += sizeof(this->minor);
+  EEPROM.put(address, this->patch);
+  address += sizeof(this->patch);
   char myFactoryLanguage[3];  // one more for the null character
   strcpy(myFactoryLanguage, this->factoryLanguage.c_str());
   EEPROM.put(address, myFactoryLanguage);
@@ -395,8 +451,10 @@ uint16_t Settings::getSettings()
   
   EEPROM.get(address, this->initNumber);
   address += sizeof(this->initNumber);
-  EEPROM.get(address, this->version);
-  address += sizeof(this->version);
+  //EEPROM.get(address, this->version); // is done at setupFirmware
+  address += sizeof(this->major);
+  address += sizeof(this->minor);
+  address += sizeof(this->patch);
 
   char myLanguage[3];  // one more for the null character
   EEPROM.get(address, myLanguage);
@@ -463,8 +521,12 @@ uint16_t Settings::saveConfigurationSettings()
   //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
 
+  //EEPROM.put(address, this->initNumber);
   address += sizeof(this->initNumber);
-  address += sizeof(this->version);
+  //EEPROM.put(address, this->version);
+  address += sizeof(this->major);
+  address += sizeof(this->minor);
+  address += sizeof(this->patch);
   
   address += 3;  // language
 
@@ -713,7 +775,9 @@ void Settings::setLanguage(String language)
   //EEPROM.begin(this->storageSize);
   EEPROM.begin(this->MAX_EEPROM_SIZE);
   address += sizeof(this->initNumber);
-  address += sizeof(this->version);
+  address += sizeof(this->major);
+  address += sizeof(this->minor);
+  address += sizeof(this->patch);
 
   char myLanguage[3];  // one more for the null character
   strcpy(myLanguage, this->language.c_str());

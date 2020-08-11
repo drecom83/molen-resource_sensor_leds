@@ -16,15 +16,15 @@ String updateOverHTTP(WiFiClient wifiClient, String serverURL, uint16_t serverPo
     switch(ret) {
         case HTTP_UPDATE_FAILED:
             Serial.printf("HTTP_UPDATE_FAILD Error (%d): %s", ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
-            result += "[update] Update failed\r\n";
+            result += "[update] Update failed";
             break;
         case HTTP_UPDATE_NO_UPDATES:
             Serial.println("[update] Update no Update");
-            result += "[update] Update no Update\r\n";
+            result += "[update] Update no Update";
             break;
         case HTTP_UPDATE_OK:
             Serial.println("[update] Update ok"); // may not be called since we reboot the ESP
-            result += "[update] Update ok\r\n";
+            result += "[update] Update ok";
             break;
     }
   }

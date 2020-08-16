@@ -4,7 +4,6 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 
-#include "ota.h"
 #include "updateOverHTTP.h"
 
 #include "settings.h"
@@ -256,9 +255,6 @@ void switchToNetwork() {
   delay(pSettings->WAIT_PERIOD);
 
   setupWiFiManager();
-  delay(pSettings->WAIT_PERIOD);
-
-  setupArduinoOTA();
   delay(pSettings->WAIT_PERIOD);
 
   delay(pSettings->WAIT_PERIOD);
@@ -533,12 +529,7 @@ String updateFirmware()
   Serial.println(serverPort);
   Serial.println(uploadScript);
   Serial.println(version);
-
   String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
-  // server.sendHeader("Cache-Control", "no-cache");
-  // server.sendHeader("Connection", "keep-alive");
-  // server.sendHeader("Pragma", "no-cache");
-  // server.send(200, "text/html", result);
   return result;
 }
 
@@ -567,23 +558,29 @@ void handleVersion() {
   }
   if (pSettings->getLanguage() == "NL")
   {
-    if (result == "[update] Update failed")
+    if (result.indexOf("failed") > -1)
     {
       result_nl = "[update] Update mislukt";
     }
-    if (result == "[update] Update no Update")
+    if (result.indexOf("no Update") > -1)
     {
       result_nl = "[update] Geen update aanwezig";
     }
-    if (result == "[update] Update ok")
+    if (result.indexOf("ok") > -1)
     {
       result_nl = "[update] Update ok";
     }
-    server.send(200, "text/plain", result_nl);
+    server.sendHeader("Cache-Control", "no-cache");
+    server.sendHeader("Connection", "keep-alive");
+    server.sendHeader("Pragma", "no-cache");
+    server.send(200, "text/html", result);
   }
   else
   {
-    server.send(200, "text/plain", result);
+    server.sendHeader("Cache-Control", "no-cache");
+    server.sendHeader("Connection", "keep-alive");
+    server.sendHeader("Pragma", "no-cache");
+    server.send(200, "text/html", result);
   }
 }
 
@@ -977,8 +974,7 @@ void setup()
   }
 
   delay(pSettings->WAIT_PERIOD);
-  setupArduinoOTA();
-  delay(pSettings->WAIT_PERIOD);
+
   initServer();
   delay(pSettings->WAIT_PERIOD);
 
@@ -990,9 +986,6 @@ void setup()
 
 void loop()
 {
-  // for setupArduinoOTA
-  otaHandle();
-
   // update should be run on every loop
   mdns.update();
 

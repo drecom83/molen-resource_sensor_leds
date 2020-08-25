@@ -1,7 +1,8 @@
 #include <ESP8266WiFi.h>          //ESP8266 Core WiFi Library (you most likely already have this in your sketch)
 #include <ESP8266WebServer.h>     //Local WebServer used to serve the configuration portal
 
-#include <ESP8266mDNS.h>
+//#include <ESP8266mDNS.h>
+#include "handlemDNS.h"
 #include <WiFiUdp.h>
 
 #include "updateOverHTTP.h"
@@ -80,7 +81,7 @@ void toggleWiFi();
 
 ESP8266WebServer server(80);
 WiFiClient wifiClient;
-MDNSResponder mdns;
+//MDNSResponder mdns;
 
 // start Settings and EEPROM stuff
 void saveSettings() {
@@ -234,11 +235,15 @@ void switchToAccessPoint() {
   initServer();
 
   // start domain name server check
+  /*
     mdns.close();
     while (mdns.begin("molen", WiFi.softAPIP())) {
       Serial.println("MDNS responder started");
       mdns.addService("http", "tcp", 80);
     }
+  */
+  mDNSnotifyAPChange();
+  //startmDNS();
   // end domain name server check
 
   echoInterruptOn();  // to prevent error with Delay
@@ -260,12 +265,17 @@ void switchToNetwork() {
   delay(pSettings->WAIT_PERIOD);
   initServer();
 
+  /*
   mdns.close();
   while (mdns.begin("molen", WiFi.localIP())) {
     Serial.println("MDNS responder started");
     mdns.addService("http", "tcp", 80);
   }
-  
+  */
+  mDNSnotifyAPChange();
+
+  //startmDNS();
+
   echoInterruptOn();  // to prevent error with Delay
 }
 
@@ -589,8 +599,15 @@ but for now, in develop-phase it is allowed here
 TODO remove this when clients are available to test
 */
 void alive() {
+
+
+  String firstFreeHostname = findFirstFreeHostname();
+
+
+
   /* used to answer a xhr call from the browser that is connected to the server */
   String result = "";
+  /*
   String myIP = "";
   result += "IP address: ";
   if (WiFi.getMode() == WIFI_AP)
@@ -602,7 +619,10 @@ void alive() {
     myIP = WiFi.localIP().toString();
   }
   result += myIP;
+  */
+  result += firstFreeHostname;
   result += "\r\n";
+  Serial.println(result);
   String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
@@ -974,6 +994,9 @@ void setup()
   }
 
   delay(pSettings->WAIT_PERIOD);
+  startmDNS();
+
+  delay(pSettings->WAIT_PERIOD);
 
   initServer();
   delay(pSettings->WAIT_PERIOD);
@@ -987,7 +1010,8 @@ void setup()
 void loop()
 {
   // update should be run on every loop
-  mdns.update();
+  //mdns.update();
+  MDNS.update();
 
   if (detectButtonFlag == true)
   {

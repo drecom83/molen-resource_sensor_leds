@@ -187,7 +187,7 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "    document.getElementById(\"updateFirmwareButton\").disabled = true\r\n";
   result += "    document.getElementById(\"updateFirmwareMessage\").innerHTML = \"Please refresh this page after about 1 minute\"\r\n";
   result += "    var params = \"name=update\";\r\n";
-  result += "    sendData(params, \"/update/\");\r\n";
+  result += "    sendUpdateFirmware(params, \"/update/\");\r\n";
   result += "  };\r\n";
   result += "</script>\r\n";
 
@@ -217,6 +217,26 @@ void help(ESP8266WebServer &server, Settings * pSettings)
   result += "    }\r\n";
   result += "    xhr.send(data);\r\n";
   result += "  }\r\n";
+
+  result += "  function sendUpdateFirmware(data, path) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", path);\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "     var myResponseText = \"\";\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "        window.location.reload();\r\n";
+  //result += "       myResponseText = this.responseText || \"\";\r\n";
+  result += "     }\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "       myResponseText = this.statusText || \"\";\r\n";
+  result += "      }\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+
   result += "</script>\r\n";
 
   result += "\r\n</body>\r\n</html>\r\n";
@@ -1160,7 +1180,7 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "    document.getElementById(\"updateFirmwareButton\").disabled = true\r\n";
   result += "    document.getElementById(\"updateFirmwareMessage\").innerHTML = \"Na ongeveer 1 minuut kun je de pagina verversen\"\r\n";
   result += "    var params = \"name=update\";\r\n";
-  result += "    sendData(params, \"/update/\");\r\n";
+  result += "    sendUpdateFirmware(params, \"/update/\");\r\n";
   result += "  };\r\n";
   result += "</script>\r\n";
 
@@ -1179,18 +1199,9 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "    document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
   result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
   result += "      var myResponseText = \"\";\r\n";
-//  result += "      if (path.indexOf(\"update\") == -1) {\r\n";
   result += "        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
   result += "          window.location.reload();\r\n";
-  //result += "        myResponseText = this.responseText || \"\";\r\n";
   result += "        }\r\n";
-//  result += "      }\r\n";
-//  result += "      else {\r\n";
-//  result += "        document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
-//  result += "        setTimeout(function() {\r\n";
-//  result += "          window.location.reload();\r\n";
-//  result += "        }, 5000);\r\n";
-//  result += "      }\r\n";
   result += "      if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
   result += "       myResponseText = this.statusText || \"\";\r\n";
   result += "      }\r\n";
@@ -1198,6 +1209,26 @@ void help_nl(ESP8266WebServer &server, Settings * pSettings)
   result += "    }\r\n";
   result += "    xhr.send(data);\r\n";
   result += "  }\r\n";
+
+  result += "  function sendUpdateFirmware(data, path) {\r\n";
+  result += "    var xhr = new XMLHttpRequest();   // new HttpRequest instance\r\n";
+  result += "    xhr.open(\"POST\", path);\r\n";
+  result += "    xhr.setRequestHeader(\"Content-Type\", \"application/x-www-form-urlencoded\");\r\n";
+  result += "   document.getElementById(\"sendMessage\").innerHTML = \"Please wait\";\r\n";
+  result += "    xhr.onreadystatechange = function() { // Call a function when the state changes.\r\n";
+  result += "     var myResponseText = \"\";\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {\r\n";
+  result += "        window.location.reload();\r\n";
+  //result += "       myResponseText = this.responseText || \"\";\r\n";
+  result += "     }\r\n";
+  result += "      if (this.readyState === XMLHttpRequest.DONE && this.status !== 200) {\r\n";
+  result += "       myResponseText = this.statusText || \"\";\r\n";
+  result += "      }\r\n";
+  result += "      document.getElementById(\"sendMessage\").innerHTML = myResponseText;\r\n";
+  result += "    }\r\n";
+  result += "    xhr.send(data);\r\n";
+  result += "  }\r\n";
+
   result += "</script>\r\n";
   result += "\r\n</body>\r\n</html>\r\n";
   server.sendHeader("Cache-Control", "no-cache");

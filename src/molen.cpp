@@ -819,7 +819,6 @@ void handleDeviceSettings()
     String _showData = "";
     String _message = "";
     for (uint8_t i=0; i< server.args(); i++){
-      result += " " +  server.argName(i) + ": " +  server.arg(i) + "\n";
       if (server.argName(i) == "name") {
         _name = server.arg(i);
       }
@@ -957,7 +956,7 @@ void initServer()
   server.on("/getSettings/", getSettings);
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
-  server.on("/update/", handleVersion);
+  server.on("/checkupdate/", handleVersion);
 
   // handles debug
   server.on("/debug/", mydebug);

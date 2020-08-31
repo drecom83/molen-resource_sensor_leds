@@ -956,7 +956,7 @@ void initServer()
   server.on("/getSettings/", getSettings);
   server.on("/saveSettings/", saveSettings);
   server.on("/reset/", resetWiFiManagerToFactoryDefaults);
-  server.on("/checkupdate/", handleVersion);
+  server.on("/update/", handleVersion);
 
   // handles debug
   server.on("/debug/", mydebug);

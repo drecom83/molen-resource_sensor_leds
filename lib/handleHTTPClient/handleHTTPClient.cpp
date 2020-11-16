@@ -4,20 +4,20 @@ long lastSendMillis = millis();                // part of the period for sending
 
 
 /* send data to target server using ESP8266HTTPClient */
-void handleHTTPClient(WiFiClient wifiClient, Settings * pSettings, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+void handleHTTPClient(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
   {
     long currentMillis = millis();
 
     // send data to the target server wich should show an openstreetmap
     if (currentMillis - lastSendMillis > pSettings->getSEND_PERIOD())
     {
-      sendDataToTarget(wifiClient, pSettings, revolutions, viewPulsesPerMinute);
+      sendDataToTarget(wifiClient, pSettings, macAddress,  revolutions, viewPulsesPerMinute);
       lastSendMillis = currentMillis;
     }
   }
 
 // start client to send data to the server (showing data on openstreetmap)
-String getSendData(Settings * pSettings, uint32_t revolutions, uint32_t viewPulsesPerMinute) {
+String getSendData(Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute) {
   String result = "{";
   result += "\"data\": {";
   result += "\"revolutions\":";
@@ -36,6 +36,10 @@ String getSendData(Settings * pSettings, uint32_t revolutions, uint32_t viewPuls
   result += "\"";
   result += pSettings->getDeviceKey();
   result += "\",";
+  result += "\"macAddress\":";
+  result += "\"";
+  result += macAddress;
+  result += "\",";
   result += "\"isOpen\":";
   result += "\"";
   result += String(pSettings->getIsOpen());
@@ -53,7 +57,7 @@ String getSendData(Settings * pSettings, uint32_t revolutions, uint32_t viewPuls
   return result;
 }
 
-void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
 {
   HTTPClient httpClient;    //Declare object of class HTTPClient
   //String targetServer = "10.0.0.51";
@@ -72,7 +76,7 @@ void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, uint32_t revo
   httpClient.addHeader("Connection", "keep-alive");
   httpClient.addHeader("Pragma", "no-cache");
 
-  String post = getSendData(pSettings, revolutions, viewPulsesPerMinute);
+  String post = getSendData(pSettings, macAddress, revolutions, viewPulsesPerMinute);
   httpClient.POST(post);   //Send the request
   //int httpCode = httpClient.POST(post);   //Send the request
   String payload = httpClient.getString();                  //Get the response payload
@@ -85,7 +89,7 @@ void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, uint32_t revo
   //Serial.println(url);
   //Serial.println(post);
   //Serial.println(httpCode);   //Print HTTP return code
-  //Serial.println(payload);    //Print request response payload
+  Serial.println(payload);    //Print request response payload
 
   httpClient.end();  //Close connection
 }

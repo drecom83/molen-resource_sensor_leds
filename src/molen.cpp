@@ -1025,7 +1025,7 @@ void loop()
   if (pSettings->allowSendingData() == true)
   {
     /* send data to target server using ESP8266HTTPClient */
-    handleHTTPClient(wifiClient, pSettings, revolutions, viewPulsesPerMinute);
+    handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
   }
 
   checkGlobalPulseInLoop();

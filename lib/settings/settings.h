@@ -16,13 +16,13 @@ private:
   /* 4 bytes to store, version of this firmware */
   uint8_t major = 0;   // max 2^8 = 256
   uint8_t minor = 0;   // max 2^8 = 256
-  uint16_t patch = 4;  // max 2^16 = 65536
+  uint16_t patch = 5;  // max 2^16 = 65536
 
   /* start as Access Point or as Network client */
-  bool startAsAccessPoint = true;
+  bool startAsAccessPoint = false;
 
-  /* TODO factoryStartAsAccessPoint, is prepared for in storageSize for EEPROM */
-  bool factoryStartAsAccessPoint = true;
+  /* factoryStartAsAccessPoint is false */
+  bool factoryStartAsAccessPoint = false;
 
   /* maximum length of ratioArgument string */
   uint8_t MAX_RATIO_ARGUMENT = 64;
@@ -43,43 +43,42 @@ private:
   uint16_t SEND_PERIOD = 3000;
 
   /* target server, max size = 32 */
-  String targetServer = "http://10.0.0.10";
-  /* TODO factoryTargetServer, is prepared for in storageSize for EEPROM */
-  String factoryTargetServer = "http://10.0.0.40"; //"http://meandmy.info";
+  String targetServer = "http://meandmy.info";
+  /* factoryTargetServer */
+  String factoryTargetServer = "http://meandmy.info";
 
   /* target port */
-  uint16_t targetPort = 9090;
-  /* TODO factoryTargetPort server, is prepared for in storageSize for EEPROM */
+  uint16_t targetPort = 80;
+  /* factoryTargetPort server */
   uint16_t factoryTargetPort = 80;
 
   /* target path, max size = 16 */
-  String targetPath = "/feed";
-  /* TODO factoryTargetPath server, is prepared for in storageSize for EEPROM */
+  String targetPath = "/feed/";
+  /* factoryTargetPath server */
   String factoryTargetPath = "/feed/";
 
   /* show on the server if the place is open for visitors */
   bool isOpen = true;
-  /* TODO factoryIsOpen, is prepared for in storageSize for EEPROM */
+  /* TODO factoryIsOpenM */
   bool factoryIsOpen = true;
 
   /* show on the server the sent data */
   bool showData = true;
-  /* TODO factoryShowData server, is prepared for in storageSize for EEPROM */
+  /* factoryShowData */
   bool factoryShowData = true;
 
   /* show on the server the sent data */
-  bool allowSendingDataValue = false;
-  /* TODO factoryShowData server, is prepared for in storageSize for EEPROM */
-  bool factoryAllowSendingDataValue = false;
+  bool allowSendingDataValue = true;
+  /* factoryShowData */
+  bool factoryAllowSendingDataValue = true;
 
-  /* message that is shown on the targetServer, comes with the data, is not stored */
+  /* message that is shown on the targetServer, comes with the data, message will not be stored */
   String targetServerMessage = "";
 
   /* MAX_RATIO_ARGUMENT bytes to store, user-entered ratio as argument, example: "4-72.99.33-80.24" */
-  String ratioArgument = "4-72.99.33-80"; //"4-4"; // keeps ratioArgument, for future use in a form 
-
+  String ratioArgument = "4-72.33-80";
   /* MAX_RATIO_ARGUMENT bytes to store, factory setting, user-entered ratio as argument, example: "4-72.99.33-80.24" */
-  String factoryRatioArgument = "4-4"; // keeps ratioArgument, for future use in a form 
+  String factoryRatioArgument = "4-4";
 
   /* Maximum size of EEPROM, SPI_FLASH_SEC_SIZE comes from spi_flash.h */
   const uint16_t MAX_EEPROM_SIZE = SPI_FLASH_SEC_SIZE;
@@ -95,19 +94,16 @@ private:
 
   /* 1 byte to store, holds check for first initialization */
   uint8_t initNumber = 0;
-
   /* 1 byte to store, factory setting, holds check for first initialization */
   uint8_t factoryInitNumber = 0;
 
   /* 37 bytes to store, together with the MAC address, the identification of a device */
   String deviceKey = "88888888-4444-4444-4444-121212121212";
-
   /* 37 bytes to store, factory setting, together with the MAC address, the identification of a device */
   String factoryDeviceKey = "88888888-4444-4444-4444-121212121212";
 
   /* 4 bytes to store, counts every pulse, range 0 - 2^32 = 4294967296 */
   uint32_t rawCounter = 0;
-
   /* 4 bytes to store, factory setting, counts every pulse, range 0 - 2^32 = 4294967296 */
   uint32_t factoryRawCounter = 0;
 
@@ -158,11 +154,13 @@ public:
                         65 +                 // MAX_RATIO_ARGUMENT + 1
                         37;                  // MAX_DEVICEKEY + 1
 
+    //this->initSettings(); // is called through the browser
     /* set new address offset */
-    //this->initSettings();
-    //this->setOffsetAddress(storageSize);
+    /*
+    this->setOffsetAddress(this->storageSize); is the same as:
+        this->addressOffset = this->address + this->storageSize;
+    */
     this->addressOffset = this->address + this->storageSize;
-    //eraseSettings();
     this->setupEEPROM();
     this->setupUpdatedFirmware();
   };

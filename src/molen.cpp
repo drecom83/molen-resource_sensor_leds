@@ -115,8 +115,6 @@ void setupWiFi(){
 
   WiFi.mode(WIFI_AP);
 
-  pSettings->allowSendingData(false);  // because there is no internetConnection
-
   String myssid = pWifiSettings->readAccessPointSSID();
   if (myssid == "")
   {
@@ -1022,7 +1020,7 @@ void loop()
   server.handleClient();
   
   // For handleHTTPClient
-  if (pSettings->allowSendingData() == true)
+  if ((WiFi.getMode() == WIFI_STA) && (pSettings->allowSendingData() == true))
   {
     /* send data to target server using ESP8266HTTPClient */
     handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);

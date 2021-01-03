@@ -52,6 +52,12 @@ public:
     {
       this->storageSizeIsAvailable = true;
       this->address = pSettings->getOffsetAddress();
+
+      if (! this->isInitialized()) {
+        this->setAccessPointSSID(String("ESP-" + WiFi.macAddress()));
+        this->setAccessPointPassword("");
+        this->saveAuthorizationAccessPoint();
+      }
     }
   };
 
@@ -111,6 +117,9 @@ public:
   bool eraseWiFiSettings();
 
 private:
+  /* checks to see if the WiFiSettings are already set, assuming that 0xff means unset */
+  bool isInitialized();
+
   /* does the erase of EEPROM addresses */
   bool eraseSettings(uint16 startAddress, uint lastAddress);
 

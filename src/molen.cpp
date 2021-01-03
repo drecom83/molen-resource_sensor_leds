@@ -116,11 +116,13 @@ void setupWiFi(){
   WiFi.mode(WIFI_AP);
 
   String myssid = pWifiSettings->readAccessPointSSID();
+  String mypass = pWifiSettings->readAccessPointPassword();
+
   if (myssid == "")
   {
     myssid = "ESP-" + WiFi.macAddress();
+    pWifiSettings->setAccessPointSSID(myssid);
   }
-  String mypass = pWifiSettings->readAccessPointPassword();
 
   IPAddress local_IP(192,168,4,1);
   IPAddress gateway(192,168,4,1);
@@ -620,8 +622,12 @@ void alive() {
   */
   result += firstFreeHostname;
   result += "\r\n";
-  Serial.println(result);
-  String allowServer = pSettings->getTargetServer() + ":" + pSettings->getTargetPort();
+  String allowServer = pSettings->getTargetServer();
+  
+  if ((pSettings->getTargetPort() != 80) && (pSettings->getTargetPort() != 443))
+  {
+    allowServer += ":" + pSettings->getTargetPort();
+  }  
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
   server.sendHeader("Pragma", "no-cache");

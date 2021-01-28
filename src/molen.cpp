@@ -31,7 +31,7 @@ const uint8_t IR_SEND = D8;         // switch for IR send LED. 0 = off, 1 = on
 const uint8_t BUTTON = D7;          // Digital pin to read button-push
 const uint8_t BLUE_LED = D4;
 const uint8_t YELLOW_1_LED = D3;
-const uint8_t YELLOW_2_LED = D2;
+//const uint8_t YELLOW_2_LED = D2;
 const uint8_t YELLOW_3_LED= D1;
 
 const uint32_t RELAX_PERIOD = 2;    // Is also a small energy saving, in milliseconds
@@ -51,6 +51,9 @@ Settings* pSettings = &settings;
 //////////////////////
 WiFiSettings wifiSettings = WiFiSettings(pSettings);
 WiFiSettings* pWifiSettings = &wifiSettings;
+
+// boolean is true if devicesettings are changed
+bool deviceSettingsHasBeenChanged = false;
 
 // detectButtonFlag lets the program know that a network-toggle is going on
 bool detectButtonFlag = false;
@@ -109,9 +112,9 @@ void initSettings() {
 
 void setupWiFi(){
   echoInterruptOff();  // to prevent error with Delay
-  digitalWrite(YELLOW_1_LED, LOW);
-  digitalWrite(YELLOW_2_LED, HIGH);
-  digitalWrite(YELLOW_3_LED, LOW);
+  digitalWrite(YELLOW_1_LED, HIGH);
+  //digitalWrite(YELLOW_2_LED, HIGH);
+  digitalWrite(YELLOW_3_LED, HIGH);
 
   WiFi.mode(WIFI_AP);
 
@@ -142,8 +145,9 @@ void setupWiFi(){
   Serial.println(WiFi.softAPmacAddress());
 
   digitalWrite(YELLOW_1_LED, HIGH);
-  digitalWrite(YELLOW_2_LED, LOW);
-  
+  //digitalWrite(YELLOW_2_LED, LOW);
+  digitalWrite(YELLOW_3_LED, LOW);
+
   pSettings->beginAsAccessPoint(true);
  
   echoInterruptOn();  // to prevent error with Delay
@@ -154,9 +158,9 @@ void setupWiFiManager () {
   bool networkConnected = false;
   echoInterruptOff();  // to prevent error with Delay
 
-  digitalWrite(YELLOW_1_LED, LOW);
-  digitalWrite(YELLOW_2_LED, HIGH);
-  digitalWrite(YELLOW_3_LED, LOW);
+  digitalWrite(YELLOW_1_LED, HIGH);
+  //digitalWrite(YELLOW_2_LED, HIGH);
+  digitalWrite(YELLOW_3_LED, HIGH);
 
   String mynetworkssid = pWifiSettings->readNetworkSSID();
   if (mynetworkssid != "") {
@@ -185,7 +189,8 @@ void setupWiFiManager () {
       networkConnected = true;
       pSettings->setLastNetworkIP(WiFi.localIP().toString());
 
-      digitalWrite(YELLOW_2_LED, LOW);
+      digitalWrite(YELLOW_1_LED, LOW);
+      //digitalWrite(YELLOW_2_LED, LOW);
       digitalWrite(YELLOW_3_LED, HIGH);
       pSettings->beginAsAccessPoint(false);
     }
@@ -886,6 +891,7 @@ void handleDeviceSettings()
       pSettings->saveConfigurationSettings();
       result += "Device data has been saved\n";
       result_nl += "Apparaatgegevens zijn opgeslagen\n";
+      deviceSettingsHasBeenChanged = true;  // used to shorten the sleep time, see loop
     }
   }
   if (pSettings->getLanguage() == "NL")
@@ -924,7 +930,7 @@ void initHardware()
 
   pinMode(BLUE_LED, OUTPUT);
   pinMode(YELLOW_1_LED, OUTPUT);
-  pinMode(YELLOW_2_LED, OUTPUT);
+  //pinMode(YELLOW_2_LED, OUTPUT);
   pinMode(YELLOW_3_LED, OUTPUT);
 }
 
@@ -1029,7 +1035,27 @@ void loop()
   if ((WiFi.getMode() == WIFI_STA) && (pSettings->allowSendingData() == true))
   {
     /* send data to target server using ESP8266HTTPClient */
-    handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
+
+    String response = handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
+    if (response == HANDLEHTTPCLIENT_FAILED) { 
+      // something is wrong with posting data. Sleep 10 minutes and start again
+      for (uint16_t i = 0; i < 12000; i++)
+      {
+        server.handleClient();
+        delay(500);
+        if (deviceSettingsHasBeenChanged == true)
+        {
+          deviceSettingsHasBeenChanged = false;
+          break;
+        }
+      }
+      ESP.restart();
+    }
+    else {
+      // TODO: do something with the response
+      //Serial.println(response);
+      
+    }
   }
 
   checkGlobalPulseInLoop();

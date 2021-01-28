@@ -4,16 +4,18 @@ long lastSendMillis = millis();                // part of the period for sending
 
 
 /* send data to target server using ESP8266HTTPClient */
-void handleHTTPClient(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+String handleHTTPClient(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
   {
+    String response = "";
     long currentMillis = millis();
 
     // send data to the target server wich should show an openstreetmap
     if (currentMillis - lastSendMillis > pSettings->getSEND_PERIOD())
     {
-      sendDataToTarget(wifiClient, pSettings, macAddress,  revolutions, viewPulsesPerMinute);
+      response = sendDataToTarget(wifiClient, pSettings, macAddress,  revolutions, viewPulsesPerMinute);
       lastSendMillis = currentMillis;
     }
+    return response;
   }
 
 // start client to send data to the server (showing data on openstreetmap)
@@ -57,7 +59,7 @@ String getSendData(Settings * pSettings, String macAddress, uint32_t revolutions
   return result;
 }
 
-void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+String sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
 {
   HTTPClient httpClient;    //Declare object of class HTTPClient
   //String targetServer = "10.0.0.51";
@@ -77,20 +79,30 @@ void sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macAdd
   httpClient.addHeader("Pragma", "no-cache");
 
   String post = getSendData(pSettings, macAddress, revolutions, viewPulsesPerMinute);
-  httpClient.POST(post);   //Send the request
-  //int httpCode = httpClient.POST(post);   //Send the request
-  String payload = httpClient.getString();                  //Get the response payload
+  //httpClient.POST(post);   //Send the request
+  int httpCode = httpClient.POST(post);   //Send the request
+  Serial.println(httpCode);
+  String response = "";
+  if (httpCode > 0)
+  {
+    response = httpClient.getString();                  //Get the response payload
 
-  // TODO: For authentication/authorisation
-  // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
-  // TODO: the current uuid(=deviceKey) then save the new deviceKey
-  // TODO: The server determines is a deviceKey is valid
+    // TODO: For authentication/authorisation
+    // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
+    // TODO: the current uuid(=deviceKey) then save the new deviceKey
+    // TODO: The server determines is a deviceKey is valid
+    Serial.println(response);
+    //Serial.println(url);
+    //Serial.println(post);
+    //Serial.println(httpCode);   //Print HTTP return code
+    //Serial.println(payload);    //Print request response payload
 
-  //Serial.println(url);
-  //Serial.println(post);
-  //Serial.println(httpCode);   //Print HTTP return code
-  Serial.println(payload);    //Print request response payload
-
+  }
+  else {
+    // something is wrong
+    response = HANDLEHTTPCLIENT_FAILED;
+  }
   httpClient.end();  //Close connection
+  return response;
 }
 // end client

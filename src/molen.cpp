@@ -552,6 +552,8 @@ String updateFirmware()
 }
 
 void handleVersion() {
+  echoInterruptOff();    // otherwise the processor could be too busy handling interrupts
+
   uint8_t argumentCounter = 0;
   String result = "";
   String result_nl = "";
@@ -600,6 +602,7 @@ void handleVersion() {
     server.sendHeader("Pragma", "no-cache");
     server.send(200, "text/html", result);
   }
+  ESP.restart();
 }
 
 /* void alive must be used in clients only
@@ -1073,8 +1076,10 @@ void loop()
 
     String response = handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
     if (response == HANDLEHTTPCLIENT_FAILED) { 
-      // something is wrong with posting data. Sleep 10 minutes and start again
-      for (uint16_t i = 0; i < 1200; i++)
+      // something is wrong with posting data. Sleep 5 minutes and start again
+      echoInterruptOff();    // otherwise the processor could be too busy handling interrupts
+
+      for (uint16_t i = 0; i < 600; i++)
       {
         server.handleClient();
         delay(500);

@@ -11,6 +11,11 @@ String Settings::getDeviceKey()
   return this->deviceKey;
 }
 
+void Settings::setDeviceKey(String myDeviceKey)
+{
+  this->deviceKey = myDeviceKey;
+}
+
 uint8_t Settings::getMAX_RATIO_ARGUMENT()
 {
   return this->MAX_RATIO_ARGUMENT;

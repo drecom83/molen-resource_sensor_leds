@@ -16,7 +16,7 @@ private:
   /* 4 bytes to store, version of this firmware */
   uint8_t major = 0;   // max 2^8 = 256
   uint8_t minor = 0;   // max 2^8 = 256
-  uint16_t patch = 7;  // max 2^16 = 65536
+  uint16_t patch = 8;  // max 2^16 = 65536
 
   /* start as Access Point or as Network client */
   bool startAsAccessPoint = false;
@@ -222,6 +222,9 @@ public:
 
   /* return deviceKey */
   String getDeviceKey();
+
+  /* set deviceKey without saving it to EEPROM */
+  void setDeviceKey(String myDeviceKey);
 
   /* maximum length of ratioArgument string */
   uint8_t getMAX_RATIO_ARGUMENT();

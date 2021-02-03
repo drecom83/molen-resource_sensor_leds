@@ -81,22 +81,11 @@ String sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macA
   String post = getSendData(pSettings, macAddress, revolutions, viewPulsesPerMinute);
   //httpClient.POST(post);   //Send the request
   int httpCode = httpClient.POST(post);   //Send the request
-  Serial.println(httpCode);
+  //Serial.println(httpCode);
   String response = "";
-  if (httpCode > 0)
+  if (httpCode == 200)
   {
-    response = httpClient.getString();                  //Get the response payload
-
-    // TODO: For authentication/authorisation
-    // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
-    // TODO: the current uuid(=deviceKey) then save the new deviceKey
-    // TODO: The server determines is a deviceKey is valid
-    Serial.println(response);
-    //Serial.println(url);
-    //Serial.println(post);
-    //Serial.println(httpCode);   //Print HTTP return code
-    //Serial.println(payload);    //Print request response payload
-
+    response = httpClient.getString();    //Get the response payload
   }
   else {
     // something is wrong

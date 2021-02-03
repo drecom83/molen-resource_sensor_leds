@@ -528,6 +528,9 @@ void mydebug() {
   Serial.print("firmware version: ");
   Serial.println(pSettings->getFirmwareVersion());
 
+  Serial.print("device key: ");
+  Serial.println(pSettings->getDeviceKey());
+
   server.sendHeader("Cache-Control", "no-cache");
   server.sendHeader("Connection", "keep-alive");
   server.sendHeader("Pragma", "no-cache");
@@ -921,6 +924,38 @@ void toggleWiFi()
   }
 }
 
+String getValueFromJSON(String key, String responseData)
+{
+  int16_t keyIndex = responseData.indexOf(key);
+  if (keyIndex > -1)
+  {
+    int16_t start = responseData.indexOf(":", keyIndex);
+    int16_t end = responseData.indexOf(",", start);
+    if (end == -1) {
+      end = responseData.indexOf("}", start);
+    }
+    String value = responseData.substring(start + 1, end);
+    value.trim();
+    value.replace("\"", "");
+    return value;
+  }
+  return "";
+}
+
+void processServerData(String responseData)
+{
+  // TODO: For authentication/autorisation
+  // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
+  // TODO: the current uuid(=deviceKey) then save the new deviceKey
+  // TODO: The server determines is a deviceKey is valid
+  String proposedUUID = getValueFromJSON("proposed_uuid", responseData);
+  if (pSettings->getDeviceKey() != proposedUUID)
+  {
+    pSettings->setDeviceKey(proposedUUID);
+    // TODO save to EEPROM
+  }
+}
+
 void initHardware()
 {
   Serial.begin(115200);
@@ -1039,7 +1074,7 @@ void loop()
     String response = handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
     if (response == HANDLEHTTPCLIENT_FAILED) { 
       // something is wrong with posting data. Sleep 10 minutes and start again
-      for (uint16_t i = 0; i < 12000; i++)
+      for (uint16_t i = 0; i < 1200; i++)
       {
         server.handleClient();
         delay(500);
@@ -1054,7 +1089,10 @@ void loop()
     else {
       // TODO: do something with the response
       //Serial.println(response);
-      
+      if (response != "")
+      {
+        processServerData(response);
+      }
     }
   }
 

@@ -30,9 +30,9 @@ const uint8_t IR_SEND = D8;         // switch for IR send LED. 0 = off, 1 = on
 
 const uint8_t BUTTON = D7;          // Digital pin to read button-push
 const uint8_t BLUE_LED = D4;
-const uint8_t YELLOW_1_LED = D3;
-//const uint8_t YELLOW_2_LED = D2;
-const uint8_t YELLOW_3_LED= D1;
+const uint8_t ACCESSPOINT_LED = D3;
+const uint8_t FIRMWAREPUSH_LED = D2;
+const uint8_t STATION_LED= D1;
 
 const uint32_t RELAX_PERIOD = 2;    // Is also a small energy saving, in milliseconds
 const uint32_t TOO_LONG = 60000;    // after this period the pulsesPerMinute = 0 (in milliseconds)
@@ -112,9 +112,8 @@ void initSettings() {
 
 void setupWiFi(){
   echoInterruptOff();  // to prevent error with Delay
-  digitalWrite(YELLOW_1_LED, HIGH);
-  //digitalWrite(YELLOW_2_LED, HIGH);
-  digitalWrite(YELLOW_3_LED, HIGH);
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, HIGH);
 
   WiFi.mode(WIFI_AP);
 
@@ -144,9 +143,8 @@ void setupWiFi(){
   Serial.println(WiFi.softAPIP());
   Serial.println(WiFi.softAPmacAddress());
 
-  digitalWrite(YELLOW_1_LED, HIGH);
-  //digitalWrite(YELLOW_2_LED, LOW);
-  digitalWrite(YELLOW_3_LED, LOW);
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, LOW);
 
   pSettings->beginAsAccessPoint(true);
  
@@ -158,9 +156,8 @@ void setupWiFiManager () {
   bool networkConnected = false;
   echoInterruptOff();  // to prevent error with Delay
 
-  digitalWrite(YELLOW_1_LED, HIGH);
-  //digitalWrite(YELLOW_2_LED, HIGH);
-  digitalWrite(YELLOW_3_LED, HIGH);
+  digitalWrite(ACCESSPOINT_LED, HIGH);
+  digitalWrite(STATION_LED, HIGH);
 
   String mynetworkssid = pWifiSettings->readNetworkSSID();
   if (mynetworkssid != "") {
@@ -189,9 +186,8 @@ void setupWiFiManager () {
       networkConnected = true;
       pSettings->setLastNetworkIP(WiFi.localIP().toString());
 
-      digitalWrite(YELLOW_1_LED, LOW);
-      //digitalWrite(YELLOW_2_LED, LOW);
-      digitalWrite(YELLOW_3_LED, HIGH);
+      digitalWrite(ACCESSPOINT_LED, LOW);
+      digitalWrite(STATION_LED, HIGH);
       pSettings->beginAsAccessPoint(false);
     }
   }
@@ -537,17 +533,21 @@ void mydebug() {
   server.send(200, "text/html", result);
 }
 
-String updateFirmware()
+String updateFirmware(String requestedVersion)
 {
+  digitalWrite(FIRMWAREPUSH_LED, HIGH);
+
   String serverUrl = pSettings->getTargetServer();
   uint16_t serverPort = pSettings->getTargetPort();
-  String uploadScript = "/updateFirmware/";
+  String uploadScript = "/updateFirmware/?device=sender&version=" + requestedVersion;
   String version = pSettings->getFirmwareVersion();
   Serial.println(serverUrl);
   Serial.println(serverPort);
   Serial.println(uploadScript);
   Serial.println(version);
   String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
+
+  digitalWrite(FIRMWAREPUSH_LED, LOW);
   return result;
 }
 
@@ -572,7 +572,7 @@ void handleVersion() {
     {
       if (argumentCounter > 0)
       {
-        result = updateFirmware();
+        result = updateFirmware("latest");
       }
     }
   }
@@ -951,11 +951,20 @@ void processServerData(String responseData)
   // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
   // TODO: the current uuid(=deviceKey) then save the new deviceKey
   // TODO: The server determines is a deviceKey is valid
-  String proposedUUID = getValueFromJSON("proposed_uuid", responseData);
-  if (pSettings->getDeviceKey() != proposedUUID)
+  String proposedUUID = getValueFromJSON("proposedUUID", responseData);
+  if ((proposedUUID != "") && (pSettings->getDeviceKey() != proposedUUID))
   {
     pSettings->setDeviceKey(proposedUUID);
-    // TODO save to EEPROM
+    pSettings->saveConfigurationSettings(); // save to EEPROM
+  }
+
+  String pushFirmwareVersion = getValueFromJSON("pushFirmware", responseData);
+  if (pushFirmwareVersion != "")
+  {
+    echoInterruptOff();    // otherwise the processor could be too busy handling interrupts
+    
+    updateFirmware(pushFirmwareVersion);
+    ESP.restart();
   }
 }
 
@@ -967,9 +976,9 @@ void initHardware()
   pinMode(IR_RECEIVE_2, INPUT);  // default down
 
   pinMode(BLUE_LED, OUTPUT);
-  pinMode(YELLOW_1_LED, OUTPUT);
-  //pinMode(YELLOW_2_LED, OUTPUT);
-  pinMode(YELLOW_3_LED, OUTPUT);
+  pinMode(ACCESSPOINT_LED, OUTPUT);
+  pinMode(FIRMWAREPUSH_LED, OUTPUT);
+  pinMode(STATION_LED, OUTPUT);
 }
 
 void initServer()
@@ -1024,6 +1033,8 @@ void setup()
   initHardware();
   digitalWrite(IR_RECEIVE_1, LOW);
   digitalWrite(IR_RECEIVE_2, LOW);
+
+  digitalWrite(FIRMWAREPUSH_LED, LOW);
 
   delay(pSettings->WAIT_PERIOD);
 

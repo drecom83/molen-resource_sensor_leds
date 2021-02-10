@@ -52,6 +52,12 @@ Settings* pSettings = &settings;
 WiFiSettings wifiSettings = WiFiSettings(pSettings);
 WiFiSettings* pWifiSettings = &wifiSettings;
 
+//////////////////////
+// AsyncHTTPrequest //
+//////////////////////
+asyncHTTPrequest request;
+asyncHTTPrequest* pRequest = &request;
+
 // boolean is true if devicesettings are changed
 bool deviceSettingsHasBeenChanged = false;
 
@@ -535,7 +541,8 @@ void mydebug() {
 
 String updateFirmware(String requestedVersion)
 {
-  digitalWrite(FIRMWAREPUSH_LED, HIGH);
+  digitalWrite(STATION_LED, HIGH);
+  digitalWrite(ACCESSPOINT_LED, HIGH);
 
   String serverUrl = pSettings->getTargetServer();
   uint16_t serverPort = pSettings->getTargetPort();
@@ -547,7 +554,8 @@ String updateFirmware(String requestedVersion)
   Serial.println(version);
   String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
 
-  digitalWrite(FIRMWAREPUSH_LED, LOW);
+  digitalWrite(STATION_LED, LOW);
+  digitalWrite(ACCESSPOINT_LED, LOW);
   return result;
 }
 
@@ -911,22 +919,6 @@ void handleDeviceSettings()
   Serial.println(result);
 }
 
-void toggleWiFi()
-{
-  // only toggle by using the button, not saving in EEPROM
-  pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
-  if (pSettings->beginAsAccessPoint() == true)
-  {
-    //switchToAccessPoint();
-    setupWiFi();        // local network as access point
-  }
-  else
-  {
-    //switchToNetwork();
-    setupWiFiManager();   // part of local network as station
-  }
-}
-
 String getValueFromJSON(String key, String responseData)
 {
   int16_t keyIndex = responseData.indexOf(key);
@@ -947,10 +939,7 @@ String getValueFromJSON(String key, String responseData)
 
 void processServerData(String responseData)
 {
-  // TODO: For authentication/autorisation
-  // TODO: Get the uuid(=deviceKey) from the payload and if it is different than
-  // TODO: the current uuid(=deviceKey) then save the new deviceKey
-  // TODO: The server determines is a deviceKey is valid
+  //Serial.println(responseData);
   String proposedUUID = getValueFromJSON("proposedUUID", responseData);
   if ((proposedUUID != "") && (pSettings->getDeviceKey() != proposedUUID))
   {
@@ -965,6 +954,31 @@ void processServerData(String responseData)
     
     updateFirmware(pushFirmwareVersion);
     ESP.restart();
+  }
+}
+
+void requestCB(void* optParm, asyncHTTPrequest* pRequest, int readyState)
+{
+  if (readyState == 4)
+  {
+      String response = pRequest->responseText();
+      processServerData(response);
+  }
+}
+
+void toggleWiFi()
+{
+  // only toggle by using the button, not saving in EEPROM
+  pSettings->beginAsAccessPoint(!  pSettings->beginAsAccessPoint());  // toggle
+  if (pSettings->beginAsAccessPoint() == true)
+  {
+    //switchToAccessPoint();
+    setupWiFi();        // local network as access point
+  }
+  else
+  {
+    //switchToNetwork();
+    setupWiFiManager();   // part of local network as station
   }
 }
 
@@ -1059,6 +1073,11 @@ void setup()
   initServer();
   delay(pSettings->WAIT_PERIOD);
 
+  //request.setDebug(true);
+  request.onReadyStateChange(requestCB);
+
+  delay(pSettings->WAIT_PERIOD);
+
   echoInterruptOn();
 
   buttonInterruptOn();
@@ -1084,32 +1103,7 @@ void loop()
   if ((WiFi.getMode() == WIFI_STA) && (pSettings->allowSendingData() == true))
   {
     /* send data to target server using ESP8266HTTPClient */
-
-    String response = handleHTTPClient(wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
-    if (response == HANDLEHTTPCLIENT_FAILED) { 
-      // something is wrong with posting data. Sleep 5 minutes and start again
-      echoInterruptOff();    // otherwise the processor could be too busy handling interrupts
-
-      for (uint16_t i = 0; i < 600; i++)
-      {
-        server.handleClient();
-        delay(500);
-        if (deviceSettingsHasBeenChanged == true)
-        {
-          deviceSettingsHasBeenChanged = false;
-          break;
-        }
-      }
-      ESP.restart();
-    }
-    else {
-      // TODO: do something with the response
-      //Serial.println(response);
-      if (response != "")
-      {
-        processServerData(response);
-      }
-    }
+    handleHTTPClient(pRequest, wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
   }
 
   checkGlobalPulseInLoop();

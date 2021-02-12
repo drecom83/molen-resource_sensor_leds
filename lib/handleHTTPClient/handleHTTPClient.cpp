@@ -64,9 +64,6 @@ String getSendData(Settings * pSettings, String macAddress, uint32_t revolutions
 
 void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
 {
-  //String targetServer = "10.0.0.51";
-  //uint16_t port = 8085;
-  //String path = "/";
   String targetServer = pSettings->getTargetServer();
   uint16_t port =  pSettings->getTargetPort();
   String path =  pSettings->getTargetPath();
@@ -94,51 +91,3 @@ void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Setting
     pRequest->send(post_data);
   }
 }
-/*
-String sendDataToTarget(WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
-{
-  HTTPClient httpClient;    //Declare object of class HTTPClient
-  //String targetServer = "10.0.0.51";
-  //uint16_t port = 8085;
-  //String path = "/";
-  String targetServer = pSettings->getTargetServer();
-  uint16_t port =  pSettings->getTargetPort();
-  String path =  pSettings->getTargetPath();
-  String url = targetServer + ":" + String(port) + path;
-  //httpClient.begin("http://192.168.1.88:8085/hello");      //Specify request destination
-  // Note: BasicAuthentication does not allow any colon characters
-  //       replace them with an underscore
-  String key = macAddress;
-  key.replace(":", "_");
-  // Note: String end with \n character that has to be removed in the header
-  String auth = base64::encode(key + ":" + pSettings->getDeviceKey());
-  auth.replace("\n","");
-
-  httpClient.begin(wifiClient, url);      //Specify request destination
-  //httpClient.begin(wifiClient, "http://10.0.0.10:9090/feed/");      //Specify request destination
-
-  httpClient.addHeader("Content-Type", "application/json");  //Specify content-type header
-  httpClient.addHeader("Cache-Control", "no-cache");
-  httpClient.addHeader("Connection", "keep-alive");
-  httpClient.addHeader("Pragma", "no-cache");
-  httpClient.addHeader("Authorization", "Basic " + auth);
-
-  String post = getSendData(pSettings, macAddress, revolutions, viewPulsesPerMinute);
-  //httpClient.POST(post);   //Send the request
-  int httpCode = httpClient.POST(post);   //Send the request
-  //Serial.println(httpCode);
-  String response = "";
-  if (httpCode == 200)
-  {
-    response = httpClient.getString();    //Get the response payload
-  }
-  else {
-    // something is wrong
-    Serial.println(httpCode);
-    response = HANDLEHTTPCLIENT_FAILED;
-  }
-  httpClient.end();  //Close connection
-  return response;
-}
-// end client
-*/

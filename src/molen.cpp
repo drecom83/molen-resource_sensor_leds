@@ -546,7 +546,7 @@ String updateFirmware(String requestedVersion)
 
   String serverUrl = pSettings->getTargetServer();
   uint16_t serverPort = pSettings->getTargetPort();
-  String uploadScript = "/updateFirmware/?device=sender&version=" + requestedVersion;
+  String uploadScript = "/update/updateFirmware/?device=sender&version=" + requestedVersion;
   String version = pSettings->getFirmwareVersion();
   Serial.println(serverUrl);
   Serial.println(serverPort);

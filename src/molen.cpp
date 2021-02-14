@@ -64,6 +64,12 @@ bool deviceSettingsHasBeenChanged = false;
 // detectButtonFlag lets the program know that a network-toggle is going on
 bool detectButtonFlag = false;
 
+// detectUpdateFlag is True is an update from the server is requested
+bool detectUpdateFlag = false;
+
+// updateSucceeded is true is the update succeeded, so a restart can be done
+bool updateSucceeded = false;
+
 // Forward declaration
 void setupWiFi();
 void showSettings();
@@ -541,6 +547,9 @@ void mydebug() {
 
 String updateFirmware(String requestedVersion)
 {
+  echoInterruptOff();
+  buttonInterruptOff();
+
   digitalWrite(STATION_LED, HIGH);
   digitalWrite(ACCESSPOINT_LED, HIGH);
 
@@ -548,14 +557,28 @@ String updateFirmware(String requestedVersion)
   uint16_t serverPort = pSettings->getTargetPort();
   String uploadScript = "/update/updateFirmware/?device=sender&version=" + requestedVersion;
   String version = pSettings->getFirmwareVersion();
-  Serial.println(serverUrl);
-  Serial.println(serverPort);
-  Serial.println(uploadScript);
-  Serial.println(version);
   String result = updateOverHTTP(wifiClient, serverUrl, serverPort, uploadScript, version);
 
-  digitalWrite(STATION_LED, LOW);
-  digitalWrite(ACCESSPOINT_LED, LOW);
+  if (result == UPDATEOVERHTTP_OK)
+  {
+    updateSucceeded = true;  // causes an ESP restart in the loop
+  }
+  else
+  {
+    // restore settings
+    echoInterruptOn();
+    buttonInterruptOn();
+    if (WiFi.getMode() == WIFI_STA)
+    {
+      digitalWrite(STATION_LED, HIGH);
+      digitalWrite(ACCESSPOINT_LED, LOW);    
+    }
+    else
+    {
+      digitalWrite(STATION_LED, LOW);    
+      digitalWrite(ACCESSPOINT_LED, HIGH);    
+    }
+  }
   return result;
 }
 
@@ -581,20 +604,28 @@ void handleVersion() {
       if (argumentCounter > 0)
       {
         result = updateFirmware("latest");
+        if (result == UPDATEOVERHTTP_OK)
+        {
+          updateSucceeded = true;
+        }
       }
     }
   }
   if (pSettings->getLanguage() == "NL")
   {
-    if (result.indexOf("failed") > -1)
+    if (result == UPDATEOVERHTTP_FAILED)
     {
       result_nl = "[update] Update mislukt";
     }
-    if (result.indexOf("no Update") > -1)
+    if (result == UPDATEOVERHTTP_NO_UPDATE)
     {
       result_nl = "[update] Geen update aanwezig";
     }
-    if (result.indexOf("ok") > -1)
+    if (result == UPDATEOVERHTTP_NO_INTERNET)
+    {
+      result_nl = "[update] Geen connectie met de server aanwezig";
+    }
+    if (result == UPDATEOVERHTTP_OK)
     {
       result_nl = "[update] Update ok";
     }
@@ -610,7 +641,6 @@ void handleVersion() {
     server.sendHeader("Pragma", "no-cache");
     server.send(200, "text/html", result);
   }
-  ESP.restart();
 }
 
 /* void alive must be used in clients only
@@ -950,10 +980,7 @@ void processServerData(String responseData)
   String pushFirmwareVersion = getValueFromJSON("pushFirmware", responseData);
   if (pushFirmwareVersion != "")
   {
-    echoInterruptOff();    // otherwise the processor could be too busy handling interrupts
-    
-    updateFirmware(pushFirmwareVersion);
-    ESP.restart();
+    detectUpdateFlag = true;
   }
 }
 
@@ -1089,6 +1116,17 @@ void loop()
   // update should be run on every loop
   //mdns.update();
   MDNS.update();
+
+  if (detectUpdateFlag == true)
+  {
+    String result = updateFirmware("latest");
+    detectUpdateFlag = false;
+  }
+
+  if (updateSucceeded == true)
+  {
+    ESP.restart();
+  }
 
   if (detectButtonFlag == true)
   {

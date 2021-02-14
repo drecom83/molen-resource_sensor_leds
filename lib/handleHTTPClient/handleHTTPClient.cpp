@@ -33,7 +33,7 @@ String getSendData(Settings * pSettings, String macAddress, uint32_t revolutions
   result += "\"";
   result += viewPulsesPerMinute;
   result += "\",";
-  result += "\"version\":";
+  result += "\"firmwareVersion\":";
   result += "\"";
   result += pSettings->getFirmwareVersion();
   result += "\",";

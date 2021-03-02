@@ -87,6 +87,7 @@ void sendDataToTarget(asyncHTTPrequest aRequest, WiFiClient wifiClient, Settings
     aRequest.setReqHeader("Cache-Control", "no-cache");
     aRequest.setReqHeader("Connection", "keep-alive");
     aRequest.setReqHeader("Pragma", "no-cache");
+    aRequest.setReqHeader("WWW-Authenticate", "Basic realm=\"role_model\", charset=\"UTF-8\"");
     aRequest.setReqHeader("Authorization", auth.c_str());
     aRequest.send(post_data);
     delay(100);  //prevents a reboot

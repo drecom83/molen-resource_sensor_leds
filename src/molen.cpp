@@ -55,8 +55,7 @@ WiFiSettings* pWifiSettings = &wifiSettings;
 //////////////////////
 // AsyncHTTPrequest //
 //////////////////////
-asyncHTTPrequest request;
-asyncHTTPrequest* pRequest = &request;
+asyncHTTPrequest aRequest;
 
 // boolean is true if devicesettings are changed
 bool deviceSettingsHasBeenChanged = false;
@@ -984,14 +983,25 @@ void processServerData(String responseData)
   }
 }
 
-void requestCB(void* optParm, asyncHTTPrequest* pRequest, int readyState)
-{
+void requestCB(void* optParm, asyncHTTPrequest* request, int readyState){
   if (readyState == 4)
   {
-      String response = pRequest->responseText();
+    if (request->responseHTTPcode() == 200)
+    {
+      String response = request->responseText();
+      //Serial.println(response);
       processServerData(response);
+    }
+    else
+    {
+      if (request->responseHTTPcode() > 0)
+      {
+        //Serial.println(request->responseText());
+      }
+    }
   }
 }
+
 
 void toggleWiFi()
 {
@@ -1101,7 +1111,7 @@ void setup()
   delay(pSettings->WAIT_PERIOD);
 
   //request.setDebug(true);
-  request.onReadyStateChange(requestCB);
+  aRequest.onReadyStateChange(requestCB);
 
   delay(pSettings->WAIT_PERIOD);
 
@@ -1141,7 +1151,8 @@ void loop()
   if ((WiFi.getMode() == WIFI_STA) && (pSettings->allowSendingData() == true))
   {
     /* send data to target server using ESP8266HTTPClient */
-    handleHTTPClient(pRequest, wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
+    /* response is handled in requestCB */
+    handleHTTPClient(aRequest, wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
   }
 
   checkGlobalPulseInLoop();

@@ -5,14 +5,14 @@ long lastSendMillis = millis();                // part of the period for sending
 
 
 /* send data to target server using ESP8266HTTPClient */
-void handleHTTPClient(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+void handleHTTPClient(asyncHTTPrequest aRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
   {
     long currentMillis = millis();
 
     // send data to the target server wich should show an openstreetmap
     if (currentMillis - lastSendMillis > pSettings->getSEND_PERIOD())
     {
-      sendDataToTarget(pRequest, wifiClient, pSettings, macAddress,  revolutions, viewPulsesPerMinute);
+      sendDataToTarget(aRequest, wifiClient, pSettings, macAddress,  revolutions, viewPulsesPerMinute);
       lastSendMillis = currentMillis;
     }
   }
@@ -62,7 +62,7 @@ String getSendData(Settings * pSettings, String macAddress, uint32_t revolutions
   return result;
 }
 
-void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
+void sendDataToTarget(asyncHTTPrequest aRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute)
 {
   String targetServer = pSettings->getTargetServer();
   uint16_t port =  pSettings->getTargetPort();
@@ -80,14 +80,15 @@ void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Setting
   String post_data = getSendData(pSettings, macAddress, revolutions, viewPulsesPerMinute);
 
 
-  if (pRequest->readyState() == 0 || pRequest->readyState() == 4)
+  if (aRequest.readyState() == 0 || aRequest.readyState() == 4)
   {
-    pRequest->open("POST", url.c_str());
-    pRequest->setReqHeader("Content-Type", "application/json");
-    pRequest->setReqHeader("Cache-Control", "no-cache");
-    pRequest->setReqHeader("Connection", "keep-alive");
-    pRequest->setReqHeader("Pragma", "no-cache");
-    pRequest->setReqHeader("Authorization", auth.c_str());
-    pRequest->send(post_data);
+    aRequest.open("POST", url.c_str());
+    aRequest.setReqHeader("Content-Type", "application/json");
+    aRequest.setReqHeader("Cache-Control", "no-cache");
+    aRequest.setReqHeader("Connection", "keep-alive");
+    aRequest.setReqHeader("Pragma", "no-cache");
+    aRequest.setReqHeader("Authorization", auth.c_str());
+    aRequest.send(post_data);
+    delay(100);  //prevents a reboot
   }
 }

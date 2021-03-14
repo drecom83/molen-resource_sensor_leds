@@ -5,11 +5,11 @@
 #include "settings.h"
 #include "asyncHTTPrequest.h"
 
-/* send data to target server using ESP8266HTTPClient */
-void handleHTTPClient(asyncHTTPrequest aRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute);
 /* contains the html that is send to the targetServer */
 String getSendData(Settings * pSettings, String macddress, uint32_t revolutions, uint32_t viewPulsesPerMinute);
 /* sends data to the targetServer */
-void sendDataToTarget(asyncHTTPrequest aRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute);
+void sendDataToTarget(asyncHTTPrequest* pRequest, WiFiClient wifiClient, Settings * pSettings, String macAddress, uint32_t revolutions, uint32_t viewPulsesPerMinute);
+/* returns response from the targetServer */
+String getAsyncResponse(asyncHTTPrequest* pRequest);
 
 #endif

@@ -29,13 +29,12 @@ const uint8_t IR_RECEIVE_2 = D6;    // Digital pin to read an incoming signal
 const uint8_t IR_SEND = D8;         // switch for IR send LED. 0 = off, 1 = on
 
 const uint8_t BUTTON = D7;          // Digital pin to read button-push
-const uint8_t BLUE_LED = D4;
+const uint8_t BLUE_LED = D2;
 const uint8_t ACCESSPOINT_LED = D3;
-const uint8_t FIRMWAREPUSH_LED = D2;
 const uint8_t STATION_LED= D1;
 
 // variables for reset to STA mode
-const uint16_t NO_STA_COUNTER_MAX = 3000; // with a delay of 100 ms the max pause time is 5 minutes
+const uint16_t NO_STA_COUNTER_MAX = 6000; // with a delay of 50 ms the max pause time is 5 minutes
 uint16_t no_sta_counter = 0;
 bool eepromStartModeAP = false;     // see setup, holds the startmode from eeprom
 
@@ -61,6 +60,7 @@ WiFiSettings* pWifiSettings = &wifiSettings;
 // AsyncHTTPrequest //
 //////////////////////
 asyncHTTPrequest aRequest;
+long lastSendMillis;
 
 // boolean is true if devicesettings are changed
 bool deviceSettingsHasBeenChanged = false;
@@ -169,6 +169,7 @@ void setupWiFi(){
 }
 
 void setupWiFiManager () {
+  Serial.println(millis());
   bool networkConnected = false;
   echoInterruptOff();  // to prevent error with Delay
 
@@ -212,6 +213,7 @@ void setupWiFiManager () {
     Serial.println("no network SSID found/selected, fall back to AccessPoint mode");
     switchToAccessPoint();
   }
+  Serial.println(millis());
 }
 
 void resetWiFiManagerToFactoryDefaults () {
@@ -1033,7 +1035,6 @@ void initHardware()
 
   pinMode(BLUE_LED, OUTPUT);
   pinMode(ACCESSPOINT_LED, OUTPUT);
-  pinMode(FIRMWAREPUSH_LED, OUTPUT);
   pinMode(STATION_LED, OUTPUT);
 }
 
@@ -1090,8 +1091,6 @@ void setup()
   digitalWrite(IR_RECEIVE_1, LOW);
   digitalWrite(IR_RECEIVE_2, LOW);
 
-  digitalWrite(FIRMWAREPUSH_LED, LOW);
-
   delay(pSettings->WAIT_PERIOD);
 
   // see https://forum.arduino.cc/index.php?topic=121654.0 voor circuit brownout
@@ -1116,10 +1115,9 @@ void setup()
   delay(pSettings->WAIT_PERIOD);
 
   initServer();
-  delay(pSettings->WAIT_PERIOD);
 
-  //request.setDebug(true);
-  aRequest.onReadyStateChange(requestCB);
+  // for asyncrequest
+  lastSendMillis = millis();
 
   delay(pSettings->WAIT_PERIOD);
 
@@ -1156,12 +1154,25 @@ void loop()
   server.handleClient();
   
   // For handleHTTPClient
-  if ((WiFi.getMode() == WIFI_STA) && (pSettings->allowSendingData() == true))
+  if (WiFi.getMode() == WIFI_STA)
   {
     /* send data to target server using ESP8266HTTPClient */
-    /* response is handled in requestCB */
-    handleHTTPClient(aRequest, wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
+    if (millis() - lastSendMillis > pSettings->getSEND_PERIOD())
+    {
+      if ((aRequest.readyState() == 0) || (aRequest.readyState() == 4)) {
+          sendDataToTarget(&aRequest, wifiClient, pSettings, String(WiFi.macAddress()), revolutions, viewPulsesPerMinute);
+      }
+      lastSendMillis = millis();
+    }
+    String response = getAsyncResponse(&aRequest);
+    if (response != "") 
+    {
+      //Serial.println(response);
+      processServerData(response);
+    }
   }
+
+  // For automatic Reset after loosing WiFi connection in STA mode
 
   if ((WiFi.getMode() == WIFI_AP) && (eepromStartModeAP == false))
   {
@@ -1169,8 +1180,8 @@ void loop()
     if (no_sta_counter < NO_STA_COUNTER_MAX)
     {
       no_sta_counter +=1;
-      delay(100);          // small value because loop must continue for other purposes
-      Serial.print(no_sta_counter);
+      delay(50);          // small value because loop must continue for other purposes
+      //Serial.print(no_sta_counter);
     }
     else {
       no_sta_counter = 0;

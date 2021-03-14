@@ -40,7 +40,7 @@ private:
   const char WHEEL_DELIMITER = '.';
 
   /* interval for sending data to the target server */
-  uint16_t SEND_PERIOD = 3000;
+  uint16_t SEND_PERIOD = 5000;
 
   /* target server, max size = 32 */
   String targetServer = "http://meandmy.info";

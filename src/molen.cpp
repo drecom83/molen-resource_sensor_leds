@@ -169,7 +169,6 @@ void setupWiFi(){
 }
 
 void setupWiFiManager () {
-  Serial.println(millis());
   bool networkConnected = false;
   echoInterruptOff();  // to prevent error with Delay
 
@@ -213,7 +212,6 @@ void setupWiFiManager () {
     Serial.println("no network SSID found/selected, fall back to AccessPoint mode");
     switchToAccessPoint();
   }
-  Serial.println(millis());
 }
 
 void resetWiFiManagerToFactoryDefaults () {
@@ -373,7 +371,7 @@ void ICACHE_RAM_ATTR detectButton() {  // ICACHE_RAM_ATTR is voor interrupts
 
   delayInMillis(10);      // prevent bounce
   
-  if (digitalRead(BUTTON) == HIGH)
+  if (digitalRead(BUTTON) == LOW)
   {
     detectButtonFlag = true;
     // only toggle between AP and STA by using the button, not saving in EEPROM
@@ -382,7 +380,7 @@ void ICACHE_RAM_ATTR detectButton() {  // ICACHE_RAM_ATTR is voor interrupts
 }
 
 void buttonInterruptOn() {
-  attachInterrupt(digitalPinToInterrupt(BUTTON), detectButton, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(BUTTON), detectButton, FALLING);
 }
 
 void buttonInterruptOff() {
@@ -1036,6 +1034,8 @@ void initHardware()
   pinMode(BLUE_LED, OUTPUT);
   pinMode(ACCESSPOINT_LED, OUTPUT);
   pinMode(STATION_LED, OUTPUT);
+
+  pinMode(BUTTON, INPUT_PULLUP);
 }
 
 void initServer()
